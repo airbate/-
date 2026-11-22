@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import {
   BOOTHS,
@@ -23,7 +23,10 @@ import { SFX } from './utils/sfx';
 import { VenueMap, type VenueMapHandle } from './components/VenueMap';
 import { DetailCard } from './components/DetailCard';
 import { DirectorySheet } from './components/DirectorySheet';
-import { ScannerModal } from './components/ScannerModal';
+import { PhotoResultModal } from './components/PhotoResultModal';
+import { GallerySheet } from './components/GallerySheet';
+import { composeStampedPhoto } from './services/photoComposer';
+import { countPhotos, savePhoto } from './services/photoStore';
 import { BootOverlay } from './components/BootOverlay';
 import { ConfettiOverlay } from './components/ConfettiOverlay';
 import { LeaderboardSheet } from './components/LeaderboardSheet';
@@ -64,6 +67,7 @@ export default function App() {
   const toastTimerRef = useRef<number | null>(null);
   const pulseTimerRef = useRef<number | null>(null);
   const directStampHandledRef = useRef<boolean>(false);
+  const photoInputRef = useRef<HTMLInputElement | null>(null);
 
   const [booting, setBooting] = useState(!initialParams.autostart);
   const [muted, setMuted] = useState(false);
@@ -72,7 +76,11 @@ export default function App() {
   const [cardOpen, setCardOpen] = useState(false);
   const [dirOpen, setDirOpen] = useState(false);
   const [lbOpen, setLbOpen] = useState(false);
-  const [scanOpen, setScanOpen] = useState(false);
+  const [galleryOpen, setGalleryOpen] = useState(false);
+  const [galleryCount, setGalleryCount] = useState(0);
+  const [photoBusy, setPhotoBusy] = useState(false);
+  const [photoTargetId, setPhotoTargetId] = useState<string | null>(null);
+  const [photoResult, setPhotoResult] = useState<{ image: string; spot: Spot } | null>(null);
   const [zoomScale, setZoomScale] = useState(1);
 
   const [profile, setProfile] = useState<VisitorProfile>(loadOrCreateVisitorProfile);
@@ -104,6 +112,16 @@ export default function App() {
       setToastMsg(null);
     }, duration);
   }, []);
+
+  const refreshGalleryCount = useCallback(() => {
+    countPhotos()
+      .then(setGalleryCount)
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    refreshGalleryCount();
+  }, [refreshGalleryCount]);
 
   // Unlock Web Audio on first pointer interaction + wire speaker grille visual pulse
   useEffect(() => {
@@ -332,28 +350,73 @@ export default function App() {
     [focusSpot, focusedId, openSpotCard]
   );
 
-  const handleOpenScan = useCallback(() => {
-    SFX.click();
-    setCardOpen(false);
-    setDirOpen(false);
-    setLbOpen(false);
-    setScanOpen(true);
-  }, []);
+  /* 拍照打卡：不再扫码，直接调起系统相机 */
+  const openPhotoPicker = useCallback(
+    (id?: string | null) => {
+      const targetId = id || focusedId || null;
+      if (!targetId || !SPOT_BY_ID[targetId]) {
+        showToast('先在地图上点一个展位，再拍照打卡');
+        setDirOpen(true);
+        SFX.click();
+        return;
+      }
+      setPhotoTargetId(targetId);
+      setCardOpen(false);
+      setDirOpen(false);
+      setLbOpen(false);
+      setGalleryOpen(false);
+      SFX.click();
 
-  const handleRecognizedQR = useCallback(
-    (boothId: string) => {
-      SFX.scanBeep();
-      setScanOpen(false);
-      window.setTimeout(() => performStamp(boothId), 140);
+      const input = photoInputRef.current;
+      if (!input) return;
+      input.value = '';
+      input.click();
     },
-    [performStamp]
+    [focusedId, showToast]
   );
 
-  const handleSimScan = useCallback(() => {
-    const pref = BOOTHS.find((b) => b.id === focusedId && !stampedIds.has(b.id));
-    const nxt = pref || BOOTHS.find((b) => !stampedIds.has(b.id)) || BOOTHS[0];
-    handleRecognizedQR(nxt.id);
-  }, [focusedId, handleRecognizedQR, stampedIds]);
+  const handlePhotoChosen = useCallback(
+    async (e: ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      e.target.value = '';
+      if (!file) return;
+
+      const target = photoTargetId ? SPOT_BY_ID[photoTargetId] : null;
+      if (!target) return;
+
+      setPhotoBusy(true);
+      try {
+        const image = await composeStampedPhoto(file, target);
+
+        try {
+          await savePhoto({
+            id: `p-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+            boothId: target.id,
+            boothName: target.name,
+            zoneName: ZONES[target.z].name,
+            createdAt: Date.now(),
+            dataUrl: image,
+          });
+        } catch {
+          // 存储失败也不阻断展示
+        }
+        refreshGalleryCount();
+        setPhotoResult({ image, spot: target });
+
+        const isBooth = BOOTHS.some((b) => b.id === target.id);
+        if (isBooth) {
+          performStamp(target.id);
+        } else {
+          showToast('地标照片已存入素材库');
+        }
+      } catch {
+        showToast('照片处理失败，请重拍一次');
+      } finally {
+        setPhotoBusy(false);
+      }
+    },
+    [photoTargetId, performStamp, refreshGalleryCount, showToast]
+  );
 
   const handlePickFromDir = useCallback(
     (spot: Spot) => {
@@ -372,7 +435,8 @@ export default function App() {
       if (tag === 'INPUT' || tag === 'TEXTAREA') return;
 
       if (e.key === 'Escape') {
-        if (scanOpen) setScanOpen(false);
+        if (photoResult) setPhotoResult(null);
+        else if (galleryOpen) setGalleryOpen(false);
         else if (cardOpen) closeSpotCard();
         else if (dirOpen) {
           setDirOpen(false);
@@ -384,7 +448,7 @@ export default function App() {
         return;
       }
 
-      if (booting || scanOpen || dirOpen || lbOpen) return;
+      if (booting || galleryOpen || dirOpen || lbOpen) return;
 
       if (cardOpen) {
         if (e.key === 'ArrowLeft') handleStepCard(-1);
@@ -429,7 +493,8 @@ export default function App() {
     handleZoomIn,
     handleZoomOut,
     lbOpen,
-    scanOpen,
+    galleryOpen,
+    photoResult,
     triggerDpad,
   ]);
 
@@ -544,6 +609,17 @@ export default function App() {
                 }}
               >
                 路线
+              </button>
+              <button
+                type="button"
+                className="chip-btn chip-gallery"
+                aria-label="打开我的打卡照片"
+                onClick={() => {
+                  SFX.openCard();
+                  setGalleryOpen(true);
+                }}
+              >
+                📸 {galleryCount}
               </button>
               <button
                 type="button"
@@ -688,8 +764,12 @@ export default function App() {
               {/* Center Scan CTA + Glowing Cyan Dual Select/Start Bars */}
               <div className="scan-center">
                 <div className="scan-btn-well">
-                  <button type="button" className="scan-btn" onClick={handleOpenScan}>
-                    📷 扫码打卡
+                  <button
+                    type="button"
+                    className="scan-btn"
+                    onClick={() => openPhotoPicker(focusedId)}
+                  >
+                    📷 拍照打卡
                   </button>
                 </div>
                 <div className="poster-pills" aria-hidden="true">
@@ -729,21 +809,38 @@ export default function App() {
               </div>
             </div>
 
-            <div className="deck-hint">轻点展位看介绍 · 📷扫码打卡 · 🏆看榜单排名</div>
+            <div className="deck-hint">轻点展位看介绍 · 📷拍照打卡 · 🏆看榜单排名</div>
           </div>
         </motion.section>
       </main>
 
       {/* Modals & Bottom Sheets */}
-      <ScannerModal
-        open={scanOpen}
-        onClose={(silent) => {
-          setScanOpen(false);
-          if (!silent) SFX.closeCard();
+      <input
+        ref={photoInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="photo-input"
+        onChange={handlePhotoChosen}
+      />
+
+      <GallerySheet
+        open={galleryOpen}
+        onClose={() => {
+          setGalleryOpen(false);
+          SFX.closeCard();
         }}
-        onRecognized={handleRecognizedQR}
-        onSimulate={handleSimScan}
-        onToast={showToast}
+      />
+
+      <PhotoResultModal
+        open={Boolean(photoResult)}
+        image={photoResult?.image ?? null}
+        spot={photoResult?.spot ?? null}
+        onClose={() => setPhotoResult(null)}
+        onOpenGallery={() => {
+          setPhotoResult(null);
+          setGalleryOpen(true);
+        }}
       />
 
       <DirectorySheet
@@ -776,8 +873,17 @@ export default function App() {
         slideDir={slideDir}
         onClose={closeSpotCard}
         onStep={handleStepCard}
-        onOpenScan={handleOpenScan}
+        onCapturePhoto={() => openPhotoPicker(focusedSpot?.id)}
       />
+
+      {photoBusy && (
+        <div className="photo-busy" role="status" aria-live="polite">
+          <div className="photo-busy-card">
+            <span>📸</span>
+            正在冲洗照片…
+          </div>
+        </div>
+      )}
     </div>
   );
 }

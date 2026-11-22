@@ -10,7 +10,7 @@ interface DetailCardProps {
   slideDir: number;
   onClose: () => void;
   onStep: (delta: number) => void;
-  onOpenScan: () => void;
+  onCapturePhoto: () => void;
 }
 
 const SPARKS = [
@@ -30,7 +30,7 @@ export function DetailCard({
   slideDir,
   onClose,
   onStep,
-  onOpenScan,
+  onCapturePhoto,
 }: DetailCardProps) {
   const zone = spot ? ZONES[spot.z] : ZONES.M;
 
@@ -152,13 +152,13 @@ export function DetailCard({
               <button
                 type="button"
                 className={`card-scan-btn ${isStamped ? 'done' : ''}`}
-                onClick={onOpenScan}
+                onClick={onCapturePhoto}
               >
                 {spot.lm
-                  ? '📷 打开扫码器去打卡'
+                  ? '📷 给地标拍张照'
                   : isStamped
-                  ? '✓ 本展位已扫码打卡'
-                  : '📷 扫此展位码打卡'}
+                  ? '📷 已打卡 · 再拍一张'
+                  : '📷 拍照打卡'}
               </button>
               <button type="button" className="nav-btn" onClick={() => onStep(1)}>
                 下一个 ▶
