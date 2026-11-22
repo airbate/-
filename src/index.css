@@ -99,24 +99,47 @@ body::before {
   z-index: 5;
 }
 
+.brand-left {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.brand-pad-crest {
+  flex-shrink: 0;
+  display: inline-flex;
+  filter: drop-shadow(0 3px 5px rgba(8, 16, 44, 0.35));
+  animation: padBob 4.2s infinite ease-in-out;
+}
+
+@keyframes padBob {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-2.5px) rotate(-3deg); }
+}
+
 .brand-title {
   margin: 0;
   color: #fff;
-  font-size: clamp(18px, 5.1vw, 23px);
+  font-size: clamp(16.5px, 4.6vw, 21px);
   font-weight: 900;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.02em;
   line-height: 1.12;
+  white-space: nowrap;
   text-shadow:
-    0 2px 0 rgba(10, 22, 54, 0.58),
+    0 2px 0 rgba(10, 22, 54, 0.62),
     0 6px 14px rgba(8, 16, 44, 0.34);
 }
 
 .brand-sub {
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 700;
-  color: rgba(255, 244, 218, 0.84);
+  color: rgba(255, 244, 218, 0.86);
   margin-top: 2px;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.015em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .header-right {
@@ -632,26 +655,69 @@ body::before {
   transform: translateX(2px);
 }
 
-/* ===== Tactile Control Deck ===== */
+/* ===== Poster Color-Block Tactile Control Deck (Lavender-Purple Left / Golden-Amber Right) ===== */
 .control-deck {
   flex: 0 0 auto;
-  padding: 10px 6px 2px;
+  margin: 8px -4px -4px;
+  padding: 10px 8px 6px;
+  border-radius: 16px 16px 24px 24px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
   position: relative;
   z-index: 2;
+  overflow: hidden;
+  background:
+    linear-gradient(
+      90deg,
+      #715DA5 0%,
+      #634F97 51.5%,
+      #1A2647 51.5%,
+      #1A2647 52.1%,
+      #F5B942 52.1%,
+      #F2AC32 100%
+    );
+  border: 2px solid rgba(26, 38, 71, 0.28);
+  box-shadow:
+    inset 0 2px 1px rgba(255, 255, 255, 0.28),
+    inset 0 -3px 6px rgba(26, 38, 71, 0.22);
+}
+
+/* Poster Pixel "+" Chassis Decals */
+.deck-plus {
+  position: absolute;
+  font-family: var(--mono);
+  font-weight: 900;
+  line-height: 1;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.deck-plus-lt {
+  top: 6px;
+  left: 9px;
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.deck-plus-mid {
+  top: 5px;
+  left: 46.5%;
+  font-size: 15px;
+  color: #FFD257;
 }
 
 .deck-row {
+  position: relative;
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 6px;
-  padding: 0 4px;
+  padding: 0 2px;
 }
 
-/* Sculpted Recessed D-Pad Well */
+/* Official Poster Cream Circular D-Pad Ring Well */
 .dpad-well {
   position: relative;
   width: 88px;
@@ -660,10 +726,11 @@ body::before {
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: radial-gradient(circle at 50% 52%, rgba(130, 52, 6, 0.42) 0%, rgba(164, 72, 12, 0.22) 70%, transparent 74%);
+  background: radial-gradient(circle at 46% 42%, #FAF4EB 0%, #EFE5D5 78%, #DFD1BC 100%);
+  border: 2px solid rgba(26, 38, 71, 0.16);
   box-shadow:
-    inset 0 3px 6px rgba(102, 38, 4, 0.44),
-    0 1.5px 0 rgba(255, 228, 186, 0.48);
+    inset 0 3px 6px rgba(42, 34, 68, 0.18),
+    0 3px 8px rgba(26, 18, 56, 0.26);
 }
 
 .dpad {
@@ -815,52 +882,52 @@ body::before {
     inset 0 1px 2px rgba(24, 12, 56, 0.4);
 }
 
-/* Acoustic Speaker Dots */
-.speaker-dots {
+/* Glowing Cyan-Blue Dual Select/Start Pills (from Poster Image 1 bottom center) */
+.poster-pills {
   display: flex;
-  gap: 6px;
+  align-items: center;
+  gap: 8px;
 }
 
-.speaker-dots i {
+.poster-pills span {
   display: block;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 50% 35%, #5C2808, #8E4110);
+  width: 28px;
+  height: 6.5px;
+  border-radius: 99px;
+  background: linear-gradient(180deg, #9BF0FF 0%, #37B9FF 100%);
+  border: 1.5px solid #1E54B5;
   box-shadow:
-    inset 0 1.2px 1.4px rgba(0, 0, 0, 0.62),
-    0 1px 0 rgba(255, 228, 184, 0.56);
-  transition: transform 0.12s cubic-bezier(0.22, 1.4, 0.36, 1), background 0.12s;
+    0 0 8px rgba(72, 209, 255, 0.65),
+    inset 0 1px 1px rgba(255, 255, 255, 0.8);
 }
 
-.speaker-dots.pulse i {
-  background: #461B02;
-  transform: scale(1.32);
+/* Right Action Pod + Diagonal Dot-Matrix Speaker Grille (from Poster Image 1 bottom right) */
+.right-pod-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
 }
 
-.speaker-dots.pulse i:nth-child(2n) {
-  transition-delay: 25ms;
-}
-
-/* Carved Tilted A/B Zoom Pod */
 .zoom-pod {
   display: flex;
   align-items: center;
-  gap: 9px;
-  padding: 6px 9px;
+  gap: 8px;
+  padding: 5px 8px;
   border-radius: 99px;
-  background: linear-gradient(180deg, rgba(132, 54, 6, 0.44), rgba(176, 82, 16, 0.34));
+  background: rgba(162, 102, 12, 0.2);
   box-shadow:
-    inset 0 3px 6px rgba(96, 36, 4, 0.52),
-    0 1.5px 0 rgba(255, 228, 186, 0.5);
-  transform: rotate(-10deg);
+    inset 0 2px 5px rgba(124, 70, 6, 0.26),
+    0 1px 0 rgba(255, 240, 200, 0.55);
+  transform: rotate(-13deg);
   flex-shrink: 0;
 }
 
 .z-btn {
   position: relative;
   appearance: none;
-  border: none;
+  border: 2px solid #1A2647;
   border-radius: 50%;
   color: #fff;
   font-family: var(--mono);
@@ -868,13 +935,13 @@ body::before {
   display: grid;
   place-items: center;
   cursor: pointer;
-  transform: rotate(10deg);
-  text-shadow: 0 1.5px 1px rgba(12, 22, 56, 0.55);
+  transform: rotate(13deg);
+  text-shadow: 0 1.5px 1px rgba(12, 22, 56, 0.48);
   box-shadow:
-    0 4px 0 #15244E,
-    0 7px 12px rgba(14, 22, 46, 0.38),
-    inset 0 2.5px 1px rgba(255, 255, 255, 0.48),
-    inset 0 -2px 3px rgba(16, 30, 74, 0.36);
+    0 3.5px 0 #15244E,
+    0 6px 10px rgba(14, 22, 46, 0.3),
+    inset 0 2.5px 1px rgba(255, 255, 255, 0.52),
+    inset 0 -2px 3px rgba(16, 30, 74, 0.28);
   transition: transform 0.08s cubic-bezier(0.22, 1.3, 0.36, 1), box-shadow 0.08s ease, filter 0.14s ease;
 }
 
@@ -886,7 +953,7 @@ body::before {
   width: 56%;
   height: 30%;
   border-radius: 50%;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.42), transparent);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.48), transparent);
   pointer-events: none;
 }
 
@@ -895,34 +962,70 @@ body::before {
 }
 
 .z-btn:active {
-  transform: rotate(10deg) translateY(3px) scale(0.97);
+  transform: rotate(13deg) translateY(3px) scale(0.97);
   box-shadow:
     0 1px 0 #15244E,
-    0 2px 4px rgba(14, 22, 46, 0.35),
-    inset 0 1px 2px rgba(14, 24, 56, 0.42);
+    0 2px 4px rgba(14, 22, 46, 0.3),
+    inset 0 1px 2px rgba(14, 24, 56, 0.38);
 }
 
+/* Poster Vivid Sky-Blue (-) & Coral-Orange (+) Action Buttons */
 .z-minus {
-  width: 41px;
-  height: 41px;
-  font-size: 22px;
-  background: linear-gradient(180deg, #6E8EC6 0%, #446097 56%, #2E4472 100%);
+  width: 40px;
+  height: 40px;
+  font-size: 21px;
+  background: linear-gradient(180deg, #5CD0FF 0%, #25A4EB 56%, #197CC4 100%);
 }
 
 .z-plus {
-  width: 47px;
-  height: 47px;
-  font-size: 26px;
-  background: linear-gradient(180deg, #6394FF 0%, #3462C9 56%, #214293 100%);
+  width: 45px;
+  height: 45px;
+  font-size: 25px;
+  background: linear-gradient(180deg, #FF824A 0%, #EE5724 58%, #C93E12 100%);
+}
+
+/* Tilted 2x6 Dot-Matrix Acoustic Speaker Grille (Poster Image 1 bottom-right) */
+.speaker-matrix {
+  display: grid;
+  grid-template-columns: repeat(6, 5px);
+  gap: 4px 5px;
+  transform: rotate(-16deg);
+  margin-top: 1px;
+}
+
+.speaker-matrix i {
+  display: block;
+  width: 4.5px;
+  height: 4.5px;
+  border-radius: 50%;
+  background: #1B2952;
+  box-shadow:
+    inset 0 1px 1px rgba(0, 0, 0, 0.55),
+    0 1px 0 rgba(255, 236, 186, 0.55);
+  transition: transform 0.12s cubic-bezier(0.22, 1.4, 0.36, 1), background 0.12s;
+}
+
+.speaker-matrix.pulse i {
+  background: #0F1733;
+  transform: scale(1.32);
+}
+
+.speaker-matrix.pulse i:nth-child(2n) {
+  transition-delay: 25ms;
 }
 
 .deck-hint {
+  position: relative;
+  z-index: 2;
   text-align: center;
-  font-size: 11px;
-  font-weight: 700;
-  color: rgba(26, 38, 71, 0.84);
+  font-size: 10.5px;
+  font-weight: 800;
+  color: #FFF8EB;
+  background: rgba(20, 30, 62, 0.56);
+  border-radius: 99px;
+  padding: 2.5px 10px;
+  margin: 0 auto;
   letter-spacing: 0.03em;
-  text-shadow: 0 1px 0 rgba(255, 228, 186, 0.42);
 }
 
 /* Console Impact Shake on Stamp */
@@ -1691,6 +1794,25 @@ body::before {
   z-index: 3;
 }
 
+.boot-sunburst {
+  position: absolute;
+  width: 340px;
+  height: 340px;
+  border-radius: 50%;
+  opacity: 0.16;
+  background: repeating-conic-gradient(
+    from 0deg,
+    #45B8FF 0deg 12deg,
+    transparent 12deg 24deg
+  );
+  animation: sunburstSpin 28s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes sunburstSpin {
+  to { transform: rotate(360deg); }
+}
+
 .boot-grid-bg {
   position: absolute;
   inset: 0;
@@ -1705,7 +1827,8 @@ body::before {
 .boot-sparkles span {
   position: absolute;
   color: var(--yellow);
-  font-size: 16px;
+  font-size: 18px;
+  font-weight: 900;
   text-shadow: 0 0 12px rgba(255, 201, 60, 0.8);
   animation: bootStarPop 0.9s infinite ease-in-out;
 }
@@ -1727,22 +1850,30 @@ body::before {
 }
 
 .boot-mascot-ring {
-  width: 78px;
-  height: 78px;
+  position: relative;
+  width: 92px;
+  height: 92px;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, rgba(255, 201, 60, 0.34), rgba(106, 82, 168, 0.45));
+  background: radial-gradient(circle at 35% 30%, rgba(255, 201, 60, 0.4), rgba(108, 91, 160, 0.65));
   border: 3px solid var(--yellow);
   box-shadow:
-    0 0 0 6px rgba(255, 201, 60, 0.14),
-    0 10px 24px rgba(6, 12, 32, 0.45);
+    0 0 0 6px rgba(255, 201, 60, 0.16),
+    0 10px 26px rgba(6, 12, 32, 0.5);
   display: grid;
   place-items: center;
   margin-bottom: 4px;
 }
 
-.boot-mascot {
-  font-size: 40px;
-  line-height: 1;
+.boot-mascot-svg {
+  display: grid;
+  place-items: center;
+}
+
+.boot-mini-pad {
+  position: absolute;
+  right: -12px;
+  bottom: -6px;
+  filter: drop-shadow(0 3px 4px rgba(10, 18, 44, 0.45));
 }
 
 .boot-kicker {
@@ -2341,7 +2472,9 @@ label:focus-visible {
   .map-cloud-a,
   .map-cloud-b,
   .map-balloon-bob,
-  .entrance-sonar {
+  .entrance-sonar,
+  .brand-pad-crest,
+  .boot-sunburst {
     animation: none !important;
   }
 }

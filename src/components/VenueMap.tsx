@@ -12,6 +12,13 @@ import {
   type CameraState,
 } from '../utils/mapLogic';
 import { SFX } from '../utils/sfx';
+import {
+  GiftMountainG,
+  MapRobotG,
+  MapVisitorG,
+  MiniConsoleStandeeG,
+  PopWaveFlankG,
+} from './CarnivalArt';
 
 export interface VenueMapHandle {
   panTo: (sx: number, sy: number, scale?: number, instant?: boolean) => void;
@@ -403,9 +410,17 @@ export const VenueMap = React.forwardRef<VenueMapHandle, VenueMapProps>(function
           <stop offset="0%" stopColor="#FFB057" />
           <stop offset="100%" stopColor="#F58D2D" />
         </linearGradient>
-        <linearGradient id="stageGlow" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#357BFF" />
-          <stop offset="100%" stopColor="#1E54D6" />
+        <linearGradient id="stageGlow" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#1B64EC" />
+          <stop offset="52%" stopColor="#268BFF" />
+          <stop offset="53%" stopColor="#F8AE2E" />
+          <stop offset="100%" stopColor="#FF7A28" />
+        </linearGradient>
+        <linearGradient id="splitPill" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="#3B6BE8" />
+          <stop offset="56%" stopColor="#3B6BE8" />
+          <stop offset="57%" stopColor="#EE6D2E" />
+          <stop offset="100%" stopColor="#F58C2D" />
         </linearGradient>
         <linearGradient id="goldStar" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="#FFF099" />
@@ -447,102 +462,159 @@ export const VenueMap = React.forwardRef<VenueMapHandle, VenueMapProps>(function
           </g>
         ))}
 
-        {/* Corner Tents */}
-        <polygon points="0,124 0,66 76,124" fill="url(#tent)" stroke="#1A2647" strokeWidth={2.5} />
-        <polygon points="800,124 800,66 724,124" fill="url(#tent)" stroke="#1A2647" strokeWidth={2.5} />
+        {/* Official Poster Pop-Art Multicolor Waves & Pleated Radial Fans */}
+        <PopWaveFlankG x={14} y={40} scale={1.08} />
+        <PopWaveFlankG x={786} y={40} scale={1.08} flip />
 
         {/* Carnival Bunting Flags */}
-        <path d="M 24 82 Q 400 96 776 82" fill="none" stroke="#1A2647" strokeWidth={1.6} opacity={0.45} />
+        <path d="M 32 96 Q 400 110 768 96" fill="none" stroke="#1A2647" strokeWidth={1.6} opacity={0.42} />
         {Array.from({ length: 16 }, (_, i) => {
-          const bx = 28 + i * 47;
+          const bx = 34 + i * 46;
           return (
             <polygon
               key={i}
-              points={`${bx},82 ${bx + 22},82 ${bx + 11},100`}
+              points={`${bx},96 ${bx + 20},96 ${bx + 10},112`}
               fill={BUNTING_COLORS[i % BUNTING_COLORS.length]}
               stroke="#1A2647"
-              strokeWidth={1.4}
+              strokeWidth={1.3}
             />
           );
         })}
 
-        {/* Corner Mascots & Gently Bobbing Balloon */}
-        <text x={86} y={108} textAnchor="middle" fontSize={40}>🤖</text>
-        <text x={714} y={106} textAnchor="middle" fontSize={38}>🤖</text>
-        <g className="map-balloon-bob">
-          <text x={752} y={64} textAnchor="middle" fontSize={28}>🎈</text>
+        {/* Floating Poster Retro Gamepad Crest (Top Right) */}
+        <g transform="translate(680 28) rotate(14)" filter="url(#softShadow)">
+          <path
+            d="M 10 10 H 54 C 60 10 64 17 62 28 C 60 37 55 41 50 40 C 45 39 42 32 37 32 H 27 C 22 32 19 39 14 40 C 9 41 4 37 2 28 C 0 17 4 10 10 10 Z"
+            fill="#3E6FE0"
+            stroke="#1A2647"
+            strokeWidth={2.6}
+          />
+          <path
+            d="M 32 10 H 54 C 60 10 64 17 62 28 C 60 37 55 41 50 40 C 45 39 42 32 37 32 H 32 Z"
+            fill="#F5A63B"
+            stroke="#1A2647"
+            strokeWidth={2.2}
+          />
+          <rect x="14" y="15" width="4.5" height="12" rx="1.4" fill="#FFF8EB" stroke="#1A2647" strokeWidth={1.4} />
+          <rect x="10.2" y="18.8" width="12" height="4.5" rx="1.4" fill="#FFF8EB" stroke="#1A2647" strokeWidth={1.4} />
+          <circle cx="48" cy="17" r="2.7" fill="#FFF2A6" stroke="#1A2647" strokeWidth={1.3} />
+          <circle cx="54" cy="21.5" r="2.7" fill="#FF6B35" stroke="#1A2647" strokeWidth={1.3} />
+          <circle cx="48" cy="26" r="2.7" fill="#37B9FF" stroke="#1A2647" strokeWidth={1.3} />
+          <circle cx="42" cy="21.5" r="2.7" fill="#7D5EC9" stroke="#1A2647" strokeWidth={1.3} />
         </g>
 
-        {/* Main Carnival Banner Ribbon */}
+        {/* Gently Bobbing Red Carnival Balloons (matching Poster Stage Flanks) */}
+        <g className="map-balloon-bob">
+          <line x1={232} y1={142} x2={244} y2={178} stroke="#1A2647" strokeWidth={1.5} />
+          <ellipse cx={231} cy={132} rx={11} ry={13.5} fill="#E94B35" stroke="#1A2647" strokeWidth={2} />
+          <ellipse cx={227} cy={127} rx={2.5} ry={4} fill="rgba(255,255,255,0.45)" />
+        </g>
+        <g className="map-balloon-bob" style={{ animationDelay: '0.9s' }}>
+          <line x1={542} y1={146} x2={530} y2={182} stroke="#1A2647" strokeWidth={1.5} />
+          <ellipse cx={543} cy={136} rx={11} ry={13.5} fill="#E94B35" stroke="#1A2647" strokeWidth={2} />
+          <ellipse cx={539} cy={131} rx={2.5} ry={4} fill="rgba(255,255,255,0.45)" />
+        </g>
+
+        {/* Main Official Bilingual Carnival Banner Ribbon */}
         <g filter="url(#softShadow)">
-          <rect x={138} y={12} width={524} height={60} rx={30} fill="url(#rib)" stroke="#FFC93C" strokeWidth={4} />
-          <rect x={156} y={17} width={488} height={14} rx={7} fill="rgba(255,255,255,0.14)" />
+          <rect x={142} y={10} width={516} height={58} rx={29} fill="url(#rib)" stroke="#FFC93C" strokeWidth={4} />
+          <rect x={160} y={15} width={480} height={13} rx={6.5} fill="rgba(255,255,255,0.16)" />
           <text
             x={400}
-            y={52}
+            y={46}
             textAnchor="middle"
             fill="#FFF"
-            fontSize={32}
+            stroke="#14234E"
+            strokeWidth={5}
+            paintOrder="stroke"
+            fontSize={31}
             fontWeight={900}
             letterSpacing={2}
           >
-            2026亦庄具身智能嘉年华
+            2026 亦庄具身智能嘉年华
           </text>
-          <rect x={288} y={66} width={224} height={32} rx={16} fill="#FFF8EB" stroke="#F4A326" strokeWidth={3.5} />
+          {/* Poster Bilingual Orange-Purple Subtitle Pill */}
+          <rect x={182} y={62} width={436} height={24} rx={12} fill="url(#splitPill)" stroke="#FFF8EB" strokeWidth={2.5} />
           <text
             x={400}
-            y={89}
+            y={78}
             textAnchor="middle"
-            fill="#1A3E8C"
-            fontSize={20}
+            fill="#FFF"
+            fontSize={12.5}
             fontWeight={900}
-            letterSpacing={4}
+            fontStyle="italic"
+            letterSpacing={0.6}
           >
-            现场导览图
+            2026 E-Town Embodied Intelligence Carnival · 现场导览图
           </text>
         </g>
 
-        {/* Zone Container: 趣玩工坊 (Left Top) */}
+        {/* Zone Container: 趣玩工坊 (Left Top) with Poster Split Pill + Mini Gamepad */}
         <g filter="url(#softShadow)">
           <polygon points="16,158 114,116 212,158" fill="url(#tent)" stroke="#1A2647" strokeWidth={2.5} />
           <rect x={16} y={152} width={196} height={418} rx={18} fill="#C4B5FD" stroke="#7B56C4" strokeWidth={3.5} />
           <rect x={203} y={184} width={6} height={368} rx={3} fill="#3B5BDB" />
-          <rect x={40} y={140} width={148} height={32} rx={16} fill="#2B5CE6" stroke="#FFF8EB" strokeWidth={3} />
-          <text x={114} y={163} textAnchor="middle" fill="#FFF" fontSize={18} fontWeight={900} letterSpacing={2}>
+          <rect x={36} y={139} width={156} height={32} rx={16} fill="url(#splitPill)" stroke="#FFF8EB" strokeWidth={3} />
+          <text x={122} y={162} textAnchor="middle" fill="#FFF" fontSize={18} fontWeight={900} letterSpacing={2}>
             趣玩工坊
           </text>
+          {/* Mini Tilted Gamepad badge perched on 趣玩工坊 header (straight from Image 1) */}
+          <g transform="translate(26 130) rotate(-18) scale(0.56)">
+            <path
+              d="M 10 10 H 54 C 60 10 64 17 62 28 C 60 37 55 41 50 40 C 45 39 42 32 37 32 H 27 C 22 32 19 39 14 40 C 9 41 4 37 2 28 C 0 17 4 10 10 10 Z"
+              fill="#3E6FE0"
+              stroke="#1A2647"
+              strokeWidth={3.5}
+            />
+            <path d="M 32 10 H 54 C 60 10 64 17 62 28 C 60 37 55 41 50 40 C 45 39 42 32 37 32 H 32 Z" fill="#F5A63B" />
+            <rect x="14" y="15" width="4.5" height="12" rx="1.4" fill="#FFF8EB" />
+            <rect x="10.2" y="18.8" width="12" height="4.5" rx="1.4" fill="#FFF8EB" />
+            <circle cx="48" cy="18" r="3" fill="#FFF2A6" />
+            <circle cx="53" cy="24" r="3" fill="#FF6B35" />
+          </g>
         </g>
 
-        {/* Zone Container: 高校角 (Left Bottom) */}
+        {/* Zone Container: 高校角 (Left Bottom) with Poster Split Pill */}
         <g filter="url(#softShadow)">
           <rect x={16} y={718} width={196} height={234} rx={16} fill="#E8F8E9" stroke="#3D9E49" strokeWidth={3.5} />
-          <rect x={32} y={712} width={164} height={32} rx={16} fill="#2F8F46" stroke="#FFF8EB" strokeWidth={3} />
+          <rect x={32} y={712} width={164} height={32} rx={16} fill="url(#splitPill)" stroke="#FFF8EB" strokeWidth={3} />
           <text x={114} y={734} textAnchor="middle" fill="#FFF" fontSize={17} fontWeight={900} letterSpacing={3}>
             🎓 高校角
           </text>
         </g>
 
-        {/* 观众席 (Center Upper) */}
+        {/* 观众席 (Center Upper) with Poster Isometric Chairs + Split Blue-Orange Pill */}
         <g>
-          <rect x={334} y={230} width={112} height={24} rx={12} fill="#FFF8EB" stroke="#F4A326" strokeWidth={2.5} />
-          <text x={390} y={247} textAnchor="middle" fill="#1A3E8C" fontSize={14} fontWeight={900}>
-            观 众 席
-          </text>
           {AUDIENCE_ROWS.map((r) =>
             AUDIENCE_COLS.map((c) => (
-              <rect
-                key={`${r}-${c}`}
-                x={246 + c * 24}
-                y={262 + r * 17}
-                width={17}
-                height={11}
-                rx={3}
-                fill="#DCE6F7"
-                stroke="#6E85B2"
-                strokeWidth={1.2}
-              />
+              <g key={`${r}-${c}`}>
+                <rect
+                  x={246 + c * 24}
+                  y={258 + r * 18}
+                  width={17}
+                  height={9}
+                  rx={3}
+                  fill="#F3F7FF"
+                  stroke="#6E85B2"
+                  strokeWidth={1.2}
+                />
+                <rect
+                  x={248 + c * 24}
+                  y={266 + r * 18}
+                  width={13}
+                  height={5}
+                  rx={2}
+                  fill="#C8D8F5"
+                  stroke="#6E85B2"
+                  strokeWidth={1}
+                />
+              </g>
             ))
           )}
+          <rect x={332} y={266} width={116} height={26} rx={13} fill="url(#splitPill)" stroke="#FFF8EB" strokeWidth={2.5} />
+          <text x={390} y={284} textAnchor="middle" fill="#FFF" fontSize={14.5} fontWeight={900} letterSpacing={3}>
+            观众席
+          </text>
         </g>
 
         {/* Zone Container: 人形机器人展位 (Center) */}
@@ -566,19 +638,16 @@ export const VenueMap = React.forwardRef<VenueMapHandle, VenueMapProps>(function
           </text>
         </g>
 
-        {/* Bottom Entrance + Bushes + Subtle Entry Sonar Beacon */}
+        {/* Stylized Poster Carnival Visitors Strolling in the Aisles */}
+        <MapVisitorG x={224} y={618} shirt="#4A7BF7" pants="#1E2D5A" />
+        <MapVisitorG x={552} y={294} shirt="#F59B2E" pants="#26396E" balloon />
+        <MapVisitorG x={554} y={596} shirt="#7D5EC9" pants="#1A2647" />
+        <MapVisitorG x={324} y={972} shirt="#FF7847" pants="#2A3E78" />
+        <MapVisitorG x={478} y={974} shirt="#3EA4F5" pants="#1E2D5A" balloon />
+
+        {/* Iconic Official Poster Carnival Entrance Archway (Image 2 Closeup!) */}
         <g>
-          <rect x={110} y={960} width={580} height={42} rx={10} fill="#FFE8B8" stroke="#D97B29" strokeWidth={2.5} />
-          {[185, 300, 500, 615].map((bx) => (
-            <circle key={bx} cx={bx} cy={972} r={10} fill="#E53935" stroke="#FFF" strokeWidth={2} />
-          ))}
-          {!focusedId && (
-            <circle cx={400} cy={1006} r={22} className="entrance-sonar" />
-          )}
-          <rect x={342} y={988} width={116} height={36} rx={18} fill="#FFF8EB" stroke="#EE8226" strokeWidth={3.5} />
-          <text x={400} y={1013} textAnchor="middle" fill="#D95B16" fontSize={19} fontWeight={900} letterSpacing={4}>
-            ▲ 入口
-          </text>
+          {/* Side decorative foliage bushes */}
           {[
             [24, 1020, 46],
             [74, 1030, 36],
@@ -587,6 +656,54 @@ export const VenueMap = React.forwardRef<VenueMapHandle, VenueMapProps>(function
           ].map(([cx, cy, r], i) => (
             <circle key={i} cx={cx} cy={cy} r={r} fill="#4CAF50" stroke="#2E7D32" strokeWidth={2.5} />
           ))}
+
+          {/* Archway Warm Carpet Floor (cleanly framed between 高校角 x<=212 and 抽奖区 x>=568) */}
+          <rect x={222} y={954} width={336} height={62} rx={10} fill="#FFE9BE" stroke="#D97B29" strokeWidth={2.2} />
+
+          {/* Left Console Pillar with Circular White D-Pad Medallion */}
+          <rect x={222} y={946} width={48} height={72} rx={8} fill="#5065B8" stroke="#1A2647" strokeWidth={2.6} />
+          <circle cx={246} cy={984} r={13.5} fill="#FFF8EB" stroke="#1A2647" strokeWidth={2} />
+          <rect x={243} y={975.5} width={6} height={17} rx={2} fill="#3B56A8" />
+          <rect x={237.5} y={981} width={17} height={6} rx={2} fill="#3B56A8" />
+
+          {/* Right Console Pillar with Circular White D-Pad Medallion */}
+          <rect x={510} y={946} width={48} height={72} rx={8} fill="#5065B8" stroke="#1A2647" strokeWidth={2.6} />
+          <circle cx={534} cy={984} r={13.5} fill="#FFF8EB" stroke="#1A2647" strokeWidth={2} />
+          <rect x={531} y={975.5} width={6} height={17} rx={2} fill="#3B56A8" />
+          <rect x={525.5} y={981} width={17} height={6} rx={2} fill="#3B56A8" />
+
+          {/* Top Navy Lintel */}
+          <rect x={218} y={934} width={344} height={24} rx={7} fill="#1E46A8" stroke="#1A2647" strokeWidth={2.6} />
+          <text x={382} y={951} textAnchor="middle" fill="#FFF" fontSize={13.5} fontWeight={900} letterSpacing={1.4}>
+            2026 亦庄具身智能嘉年华
+          </text>
+          {/* Hanging Pennant Scallops under Archway Lintel */}
+          {Array.from({ length: 10 }, (_, i) => {
+            const px = 274 + i * 23;
+            return (
+              <polygon
+                key={i}
+                points={`${px},958 ${px + 19},958 ${px + 9.5},970`}
+                fill={BUNTING_COLORS[i % BUNTING_COLORS.length]}
+                stroke="#1A2647"
+                strokeWidth={1.2}
+              />
+            );
+          })}
+
+          {/* Signature White Humanoid Robot Peeking Playfully Over Top-Right Arch Corner */}
+          <MapRobotG x={542} y={928} scale={0.86} pose="peek" />
+
+          {/* Subtle Entry Sonar Beacon when unfocused */}
+          {!focusedId && (
+            <circle cx={390} cy={1008} r={24} className="entrance-sonar" />
+          )}
+
+          {/* Split Blue-Orange "嘉年华入口" Badge */}
+          <rect x={314} y={992} width={152} height={34} rx={17} fill="url(#splitPill)" stroke="#FFF8EB" strokeWidth={3} />
+          <text x={390} y={1015} textAnchor="middle" fill="#FFF" fontSize={17.5} fontWeight={900} letterSpacing={3}>
+            ▲ 嘉年华入口
+          </text>
         </g>
 
         {/* Animated Walkway Route */}
@@ -637,7 +754,21 @@ export const VenueMap = React.forwardRef<VenueMapHandle, VenueMapProps>(function
 
               {s.id === 'STAGE' ? (
                 <>
-                  <rect x={s.x} y={s.y + 4} width={s.w} height={s.h} rx={12} fill="rgba(16,24,48,0.22)" />
+                  {/* Overhead Stage Lighting Truss Rig (from Poster Image 1) */}
+                  <line x1={s.x - 16} y1={s.y - 12} x2={s.x + s.w + 16} y2={s.y - 12} stroke="#1A2647" strokeWidth={3} />
+                  <line x1={s.x - 16} y1={s.y - 5} x2={s.x + s.w + 16} y2={s.y - 5} stroke="#1A2647" strokeWidth={2} />
+                  {Array.from({ length: 8 }, (_, idx) => {
+                    const lx = s.x + 8 + idx * 32;
+                    return (
+                      <g key={idx}>
+                        <line x1={lx} y1={s.y - 12} x2={lx + 14} y2={s.y - 5} stroke="#1A2647" strokeWidth={1.4} />
+                        <circle cx={lx + 7} cy={s.y - 3} r={3.5} fill="#FFE680" stroke="#1A2647" strokeWidth={1.2} />
+                      </g>
+                    );
+                  })}
+
+                  {/* Stage Shadow & Base Platform */}
+                  <rect x={s.x - 14} y={s.y + s.h - 4} width={s.w + 28} height={11} rx={5} fill="#1A2647" />
                   <rect
                     className="booth-bg"
                     x={s.x}
@@ -645,33 +776,64 @@ export const VenueMap = React.forwardRef<VenueMapHandle, VenueMapProps>(function
                     width={s.w}
                     height={s.h}
                     rx={12}
-                    fill="#2049B8"
+                    fill="#F4F7FF"
                     stroke="#1A2647"
-                    strokeWidth={3.5}
+                    strokeWidth={3.2}
                   />
+
+                  {/* Left Console Wing: Blue + D-Pad Medallion & Blue Dots */}
+                  <rect x={s.x + 2} y={s.y + 2} width={44} height={s.h - 4} rx={10} fill="#D8EEFF" />
+                  <circle cx={s.x + 24} cy={s.y + 26} r={14} fill="#FFFFFF" stroke="#1A2647" strokeWidth={2} />
+                  <rect x={s.x + 21} y={s.y + 17} width={6} height={18} rx={2} fill="#1F4AA8" />
+                  <rect x={s.x + 15} y={s.y + 23} width={18} height={6} rx={2} fill="#1F4AA8" />
+                  <circle cx={s.x + 17} cy={s.y + 58} r={4.5} fill="#2B84F5" stroke="#1A2647" strokeWidth={1.4} />
+                  <circle cx={s.x + 31} cy={s.y + 58} r={4.5} fill="#5CC5FF" stroke="#1A2647" strokeWidth={1.4} />
+                  <circle cx={s.x + 17} cy={s.y + 72} r={4.5} fill="#5CC5FF" stroke="#1A2647" strokeWidth={1.4} />
+                  <circle cx={s.x + 31} cy={s.y + 72} r={4.5} fill="#2B84F5" stroke="#1A2647" strokeWidth={1.4} />
+
+                  {/* Right Console Wing: Arcade Action Buttons */}
+                  <rect x={s.x + s.w - 46} y={s.y + 2} width={44} height={s.h - 4} rx={10} fill="#FFE6BF" />
+                  <circle cx={s.x + s.w - 24} cy={s.y + 26} r={14} fill="#FFFFFF" stroke="#1A2647" strokeWidth={2} />
+                  <rect x={s.x + s.w - 27} y={s.y + 17} width={6} height={18} rx={2} fill="#E25822" />
+                  <rect x={s.x + s.w - 33} y={s.y + 23} width={18} height={6} rx={2} fill="#E25822" />
+                  <circle cx={s.x + s.w - 31} cy={s.y + 58} r={4.5} fill="#FF6B2B" stroke="#1A2647" strokeWidth={1.4} />
+                  <circle cx={s.x + s.w - 17} cy={s.y + 58} r={4.5} fill="#2B84F5" stroke="#1A2647" strokeWidth={1.4} />
+                  <circle cx={s.x + s.w - 31} cy={s.y + 72} r={4.5} fill="#FFC93C" stroke="#1A2647" strokeWidth={1.4} />
+                  <circle cx={s.x + s.w - 17} cy={s.y + 72} r={4.5} fill="#FF6B2B" stroke="#1A2647" strokeWidth={1.4} />
+
+                  {/* Center Diagonal Blue-to-Gold Geometric LED Screen */}
                   <rect
-                    x={s.x + 16}
-                    y={s.y + 22}
-                    width={s.w - 32}
-                    height={54}
+                    x={s.x + 48}
+                    y={s.y + 10}
+                    width={s.w - 96}
+                    height={s.h - 20}
                     rx={8}
                     fill="url(#stageGlow)"
-                    stroke="#7CC0FF"
-                    strokeWidth={2}
+                    stroke="#1A2647"
+                    strokeWidth={2.4}
                   />
                   <text
                     x={s.cx}
                     y={s.y + 58}
                     textAnchor="middle"
                     fill="#FFF"
+                    stroke="#1A2647"
+                    strokeWidth={5}
+                    paintOrder="stroke"
                     fontSize={27}
                     fontWeight={900}
-                    letterSpacing={6}
+                    letterSpacing={5}
                   >
                     主舞台
                   </text>
-                  <rect x={s.x - 22} y={s.y + 18} width={18} height={66} rx={4} fill="#33426B" stroke="#1A2647" strokeWidth={2} />
-                  <rect x={s.x + s.w + 4} y={s.y + 18} width={18} height={66} rx={4} fill="#33426B" stroke="#1A2647" strokeWidth={2} />
+
+                  {/* Left & Right Navy Hi-Fi Speaker Towers */}
+                  <rect x={s.x - 24} y={s.y + 20} width={20} height={68} rx={5} fill="#254896" stroke="#1A2647" strokeWidth={2.2} />
+                  <circle cx={s.x - 14} cy={s.y + 39} r={6} fill="#14234E" stroke="#6FA6FF" strokeWidth={1.6} />
+                  <circle cx={s.x - 14} cy={s.y + 66} r={7.5} fill="#14234E" stroke="#6FA6FF" strokeWidth={1.6} />
+                  <rect x={s.x + s.w + 4} y={s.y + 20} width={20} height={68} rx={5} fill="#254896" stroke="#1A2647" strokeWidth={2.2} />
+                  <circle cx={s.x + s.w + 14} cy={s.y + 39} r={6} fill="#14234E" stroke="#6FA6FF" strokeWidth={1.6} />
+                  <circle cx={s.x + s.w + 14} cy={s.y + 66} r={7.5} fill="#14234E" stroke="#6FA6FF" strokeWidth={1.6} />
                 </>
               ) : s.id === 'PHOTO' ? (
                 <>
@@ -692,12 +854,13 @@ export const VenueMap = React.forwardRef<VenueMapHandle, VenueMapProps>(function
                     stroke="#E89B25"
                     strokeWidth={3}
                   />
-                  <rect x={s.x + 24} y={s.y + 8} width={s.w - 48} height={24} rx={12} fill="#2355D6" stroke="#FFF" strokeWidth={2} />
-                  <text x={s.cx} y={s.y + 25} textAnchor="middle" fill="#FFF" fontSize={14} fontWeight={900}>
+                  <rect x={s.x + 20} y={s.y + 8} width={s.w - 40} height={24} rx={12} fill="url(#splitPill)" stroke="#FFF" strokeWidth={2} />
+                  <text x={s.cx} y={s.y + 25} textAnchor="middle" fill="#FFF" fontSize={13.5} fontWeight={900}>
                     互动打卡区
                   </text>
-                  <text x={s.cx - 30} y={s.y + 82} textAnchor="middle" fontSize={34}>🤖</text>
-                  <text x={s.cx + 32} y={s.y + 80} textAnchor="middle" fontSize={28}>📸</text>
+                  {/* Official Mini Handheld Photo Frame Standee from Poster Image 2 */}
+                  <MiniConsoleStandeeG x={s.cx - 24} y={s.y + 72} scale={0.78} />
+                  <text x={s.cx + 38} y={s.y + 79} textAnchor="middle" fontSize={28}>📸</text>
                 </>
               ) : s.id === 'LUCKY' ? (
                 <>
@@ -718,12 +881,13 @@ export const VenueMap = React.forwardRef<VenueMapHandle, VenueMapProps>(function
                     stroke="#EE8226"
                     strokeWidth={3}
                   />
-                  <rect x={s.x + 42} y={s.y + 14} width={s.w - 84} height={28} rx={14} fill="#2355D6" stroke="#FFC93C" strokeWidth={2.5} />
+                  <rect x={s.x + 38} y={s.y + 14} width={s.w - 76} height={28} rx={14} fill="url(#splitPill)" stroke="#FFC93C" strokeWidth={2.5} />
                   <text x={s.cx} y={s.y + 34} textAnchor="middle" fill="#FFF" fontSize={16} fontWeight={900}>
                     抽奖区
                   </text>
-                  <text x={s.cx - 36} y={s.y + 114} textAnchor="middle" fontSize={36}>🤖</text>
-                  <text x={s.cx + 28} y={s.y + 112} textAnchor="middle" fontSize={42}>🎁</text>
+                  {/* White Humanoid Mascot + Official Stacked Gift Box Mountain from Poster Image 2 */}
+                  <MapRobotG x={s.cx - 46} y={s.y + 104} scale={0.82} />
+                  <GiftMountainG x={s.cx + 28} y={s.y + 102} scale={0.94} />
                 </>
               ) : s.id === 'W2' ? (
                 <>
@@ -773,6 +937,7 @@ export const VenueMap = React.forwardRef<VenueMapHandle, VenueMapProps>(function
                 </>
               ) : s.id === 'W1' ? (
                 <>
+                  {/* Official Poster Lush Grass Soccer Field (Image 2 Closeup!) */}
                   <rect
                     className="booth-bg"
                     x={s.x}
@@ -780,11 +945,23 @@ export const VenueMap = React.forwardRef<VenueMapHandle, VenueMapProps>(function
                     width={s.w}
                     height={s.h}
                     rx={12}
-                    fill="#4CAF50"
+                    fill="#72B828"
                     stroke="#1A2647"
                     strokeWidth={3}
                   />
-                  <rect x={s.x + 4} y={s.y + 4} width={s.w - 8} height={28} rx={8} fill="#FFF8EB" />
+                  {/* Subtle mowed grass stripes */}
+                  {[0, 2, 4].map((stripe) => (
+                    <rect
+                      key={stripe}
+                      x={s.x + 10 + stripe * 21}
+                      y={s.y + 38}
+                      width={21}
+                      height={s.h - 48}
+                      fill="rgba(255,255,255,0.08)"
+                    />
+                  ))}
+                  {/* Header banner bar */}
+                  <rect x={s.x + 4} y={s.y + 4} width={s.w - 8} height={28} rx={8} fill="#FFF8EB" stroke="#1A2647" strokeWidth={1.6} />
                   <rect x={s.x + 8} y={s.y + 8} width={34} height={20} rx={8} fill="#2355D6" />
                   <text x={s.x + 25} y={s.y + 22} textAnchor="middle" fill="#FFF" fontFamily="monospace" fontSize={12} fontWeight={900}>
                     W1
@@ -792,11 +969,22 @@ export const VenueMap = React.forwardRef<VenueMapHandle, VenueMapProps>(function
                   <text x={s.x + 94} y={s.y + 22} textAnchor="middle" fill="#1A2647" fontSize={11} fontWeight={900}>
                     踢球人形机器人
                   </text>
-                  <rect x={s.x + 10} y={s.y + 42} width={s.w - 20} height={s.h - 54} rx={4} fill="none" stroke="rgba(255,255,255,0.85)" strokeWidth={2} />
-                  <line x1={s.cx} y1={s.y + 42} x2={s.cx} y2={s.y + s.h - 12} stroke="rgba(255,255,255,0.85)" strokeWidth={2} />
-                  <circle cx={s.cx} cy={s.y + 114} r={22} fill="none" stroke="rgba(255,255,255,0.85)" strokeWidth={2} />
-                  <text x={s.cx - 12} y={s.y + 128} textAnchor="middle" fontSize={44}>🤖</text>
-                  <text x={s.cx + 26} y={s.y + 146} textAnchor="middle" fontSize={22}>⚽</text>
+                  {/* Crisp White Pitch Lines: Outer Touchline, Penalty Boxes, Center Circle */}
+                  <rect x={s.x + 10} y={s.y + 40} width={s.w - 20} height={s.h - 50} rx={3} fill="none" stroke="#FFFFFF" strokeWidth={2.2} />
+                  <line x1={s.x + 10} y1={s.y + 114} x2={s.x + s.w - 10} y2={s.y + 114} stroke="#FFFFFF" strokeWidth={2} />
+                  <circle cx={s.cx} cy={s.y + 114} r={20} fill="none" stroke="#FFFFFF" strokeWidth={2} />
+                  <circle cx={s.cx} cy={s.y + 114} r={3} fill="#FFFFFF" />
+                  {/* Top & Bottom Penalty Boxes */}
+                  <rect x={s.cx - 34} y={s.y + 40} width={68} height={22} fill="none" stroke="#FFFFFF" strokeWidth={1.8} />
+                  <rect x={s.cx - 18} y={s.y + 40} width={36} height={10} fill="none" stroke="#FFFFFF" strokeWidth={1.6} />
+                  <rect x={s.cx - 34} y={s.y + s.h - 32} width={68} height={22} fill="none" stroke="#FFFFFF" strokeWidth={1.8} />
+                  <rect x={s.cx - 18} y={s.y + s.h - 20} width={36} height={10} fill="none" stroke="#FFFFFF" strokeWidth={1.6} />
+                  {/* White Humanoid Robot Mascot Kicking a Soccer Ball */}
+                  <MapRobotG x={s.cx - 14} y={s.y + 112} scale={0.95} pose="soccer" />
+                  <g transform={`translate(${s.cx + 25} ${s.y + 136})`}>
+                    <circle cx={0} cy={0} r={10} fill="#FFFFFF" stroke="#1A2647" strokeWidth={2} />
+                    <polygon points="0,-5 4.8,-1.5 3,4.2 -3,4.2 -4.8,-1.5" fill="#1A2647" />
+                  </g>
                 </>
               ) : s.z === 'Q' ? (
                 <>

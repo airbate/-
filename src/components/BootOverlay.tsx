@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
+import { RetroGamepadSvg, RobotMascotSvg } from './CarnivalArt';
 
 interface BootOverlayProps {
   visible: boolean;
@@ -39,15 +40,16 @@ export function BootOverlay({ visible, hasDirectStamp, onFinish }: BootOverlayPr
             transition={{ duration: 0.42, times: [0, 0.45, 1], ease: [0.16, 1, 0.3, 1] }}
           />
 
-          {/* Radial Retro Grid Glow */}
+          {/* Poster-inspired Sunburst Radial Disc & Retro Grid */}
+          <div className="boot-sunburst" aria-hidden="true" />
           <div className="boot-grid-bg" aria-hidden="true" />
 
-          {/* Floating Pixel Sparkles */}
+          {/* Floating Poster Pixel Plus & Star Accents */}
           <div className="boot-sparkles" aria-hidden="true">
-            <span style={{ left: '16%', top: '22%', animationDelay: '0s' }}>✦</span>
-            <span style={{ left: '82%', top: '18%', animationDelay: '0.18s' }}>★</span>
-            <span style={{ left: '14%', top: '72%', animationDelay: '0.28s' }}>★</span>
-            <span style={{ left: '84%', top: '68%', animationDelay: '0.12s' }}>✦</span>
+            <span style={{ left: '14%', top: '20%', animationDelay: '0s' }}>+</span>
+            <span style={{ left: '84%', top: '18%', animationDelay: '0.18s' }}>✦</span>
+            <span style={{ left: '13%', top: '74%', animationDelay: '0.28s' }}>✦</span>
+            <span style={{ left: '85%', top: '70%', animationDelay: '0.12s' }}>+</span>
           </div>
 
           {/* Center Cartridge Emblem */}
@@ -58,16 +60,19 @@ export function BootOverlay({ visible, hasDirectStamp, onFinish }: BootOverlayPr
             transition={{ delay: 0.16, type: 'spring', stiffness: 420, damping: 24 }}
           >
             <div className="boot-mascot-ring">
-              <motion.span
-                className="boot-mascot"
-                animate={{ y: [0, -6, 0], rotate: [-4, 4, -4] }}
-                transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut' }}
+              <motion.div
+                className="boot-mascot-svg"
+                animate={{ y: [0, -5, 0], rotate: [-2.5, 2.5, -2.5] }}
+                transition={{ duration: 1.15, repeat: Infinity, ease: 'easeInOut' }}
               >
-                🤖
-              </motion.span>
+                <RobotMascotSvg size={64} variant="wave" />
+              </motion.div>
+              <span className="boot-mini-pad" aria-hidden="true">
+                <RetroGamepadSvg width={34} />
+              </span>
             </div>
 
-            <div className="boot-kicker">E-BOT HUB · 2026</div>
+            <div className="boot-kicker">2026 E-TOWN EMBODIED INTELLIGENCE</div>
             <div className="boot-title">亦庄具身智能嘉年华</div>
             <div className="boot-sub">
               {hasDirectStamp ? '识别展位码 · 正在前往打卡点' : '掌上导览机启动中 · 45 个展位就绪'}

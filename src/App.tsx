@@ -27,6 +27,7 @@ import { ScannerModal } from './components/ScannerModal';
 import { BootOverlay } from './components/BootOverlay';
 import { ConfettiOverlay } from './components/ConfettiOverlay';
 import { LeaderboardSheet } from './components/LeaderboardSheet';
+import { RetroGamepadSvg } from './components/CarnivalArt';
 
 function loadInitialStamps(): Set<string> {
   try {
@@ -473,19 +474,23 @@ export default function App() {
       </AnimatePresence>
 
       <main className="app-frame">
-        {/* Top Brand Header */}
+        {/* Top Brand Header with Extracted Poster Retro Gamepad Crest */}
         <motion.header
           className="top-header"
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
         >
-          <div>
-            <h1 className="brand-title">亦庄具身智能嘉年华</h1>
-            <div className="brand-sub">亦庄机器人 × E-Bot Hub × 探月具身智能社区</div>
+          <div className="brand-left">
+            <span className="brand-pad-crest" aria-hidden="true">
+              <RetroGamepadSvg width={42} />
+            </span>
+            <div>
+              <h1 className="brand-title">2026 亦庄具身智能嘉年华</h1>
+              <div className="brand-sub">E-Town Embodied Intelligence · 亦庄机器人 × E-Bot Hub</div>
+            </div>
           </div>
           <div className="header-right">
-            <span className="brand-year">2026</span>
             <button
               type="button"
               className={`mute-btn ${muted ? 'muted' : ''}`}
@@ -629,10 +634,14 @@ export default function App() {
             </div>
           </div>
 
-          {/* Physical Control Deck */}
+          {/* Physical Color-Block Control Deck (extracted from Poster Image 1) */}
           <div className="control-deck">
+            {/* Poster pixel + chassis decals */}
+            <span className="deck-plus deck-plus-lt" aria-hidden="true">+</span>
+            <span className="deck-plus deck-plus-mid" aria-hidden="true">+</span>
+
             <div className="deck-row">
-              {/* Sculpted D-Pad */}
+              {/* Cream Circular Well + Sculpted Navy D-Pad */}
               <div className="dpad-well">
                 <div className={`dpad ${dpadTilt ? `tilt-${dpadTilt}` : ''}`}>
                   <button
@@ -676,44 +685,47 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Center Scan CTA + Acoustic Speaker Grille */}
+              {/* Center Scan CTA + Glowing Cyan Dual Select/Start Bars */}
               <div className="scan-center">
                 <div className="scan-btn-well">
                   <button type="button" className="scan-btn" onClick={handleOpenScan}>
                     📷 扫码打卡
                   </button>
                 </div>
-                <div
-                  className={`speaker-dots ${speakerPulse ? 'pulse' : ''}`}
-                  aria-hidden="true"
-                >
-                  <i />
-                  <i />
-                  <i />
-                  <i />
-                  <i />
-                  <i />
+                <div className="poster-pills" aria-hidden="true">
+                  <span />
+                  <span />
                 </div>
               </div>
 
-              {/* Tilted A/B Zoom Pod */}
-              <div className="zoom-pod">
-                <button
-                  type="button"
-                  className="z-btn z-minus"
-                  aria-label="缩小地图"
-                  onClick={handleZoomOut}
+              {/* Poster Sky-Blue & Coral-Orange Action Pod + Diagonal Dot-Matrix Speaker */}
+              <div className="right-pod-wrap">
+                <div className="zoom-pod">
+                  <button
+                    type="button"
+                    className="z-btn z-minus"
+                    aria-label="缩小地图"
+                    onClick={handleZoomOut}
+                  >
+                    −
+                  </button>
+                  <button
+                    type="button"
+                    className="z-btn z-plus"
+                    aria-label="放大地图"
+                    onClick={handleZoomIn}
+                  >
+                    ＋
+                  </button>
+                </div>
+                <div
+                  className={`speaker-matrix ${speakerPulse ? 'pulse' : ''}`}
+                  aria-hidden="true"
                 >
-                  −
-                </button>
-                <button
-                  type="button"
-                  className="z-btn z-plus"
-                  aria-label="放大地图"
-                  onClick={handleZoomIn}
-                >
-                  ＋
-                </button>
+                  {Array.from({ length: 12 }, (_, idx) => (
+                    <i key={idx} />
+                  ))}
+                </div>
               </div>
             </div>
 
