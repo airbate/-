@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#193A85" />
+<title>2026 亦庄具身智能嘉年华 · 掌上导览机</title>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js" defer></script>
+<style>
+  :root{
+    --bg1:#214B9E;--bg2:#142E6D;--sh1:#F8B04D;--sh2:#EE8E33;--sh3:#DF7620;--lip:#A94D0E;
+    --purple:#6A52A8;--navy:#1A2647;--deep:#101830;--cream:#FFF8EB;--cream2:#F4E7CD;
+    --yellow:#FFC93C;--orange:#FF6B2B;--teal:#00B894;
+    --sans:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",-apple-system,sans-serif;
+    --mono:"SF Mono","JetBrains Mono","Menlo",ui-monospace,monospace;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+  html,body{margin:0;padding:0;width:100%;height:100dvh;overflow:hidden;font-family:var(--sans);color:var(--navy);background:linear-gradient(165deg,var(--bg1),var(--bg2))}
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;background:repeating-linear-gradient(-35deg,rgba(255,255,255,.032) 0 18px,transparent 18px 42px)}
+  .app{position:relative;width:100%;height:100dvh;display:flex;flex-direction:column;padding:max(6px,env(safe-area-inset-top)) 9px max(9px,env(safe-area-inset-bottom));gap:6px}
+  /* Header */
+  .top-header{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;padding:1px 4px 0;z-index:5}
+  .brand-title{margin:0;color:#fff;font-size:clamp(18px,5.2vw,23px);font-weight:900;letter-spacing:.03em;line-height:1.1;text-shadow:0 2px 0 rgba(10,22,54,.5)}
+  .brand-sub{font-size:10px;font-weight:700;color:rgba(255,243,214,.8);margin-top:1px}
+  .header-right{display:flex;align-items:center;gap:7px}
+  .brand-year{font-family:Georgia,serif;font-style:italic;font-weight:900;font-size:clamp(16px,4.3vw,20px);color:var(--yellow);text-shadow:0 2px 0 rgba(10,22,54,.45)}
+  .mute-btn{appearance:none;width:28px;height:28px;border-radius:50%;border:2px solid rgba(255,255,255,.34);background:rgba(16,24,48,.38);color:#fff;font-size:13px;display:grid;place-items:center;cursor:pointer}
+  .mute-btn.muted{opacity:.45}
+  /* Console Shell */
+  .console-shell{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;border-radius:22px;padding:8px 9px;background:linear-gradient(180deg,var(--sh1),var(--sh2) 46%,var(--sh3));box-shadow:0 7px 0 var(--lip),0 14px 26px rgba(8,16,40,.48),inset 0 2.5px 0 rgba(255,236,204,.68),inset 0 -3px 0 rgba(154,68,10,.38);border:2px solid rgba(255,220,172,.44);position:relative}
+  .console-shell::before,.console-shell::after{content:"";position:absolute;bottom:24px;width:5px;height:52px;border-radius:4px;background:var(--purple);box-shadow:inset 0 1px 2px rgba(0,0,0,.35);pointer-events:none}
+  .console-shell::before{left:2px}.console-shell::after{right:2px}
+  .shell-meta{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;padding:0 4px 6px;gap:6px}
+  .meta-left{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:900}
+  .vent{display:inline-flex;gap:2.5px;transform:skewX(-18deg)}.vent i{display:block;width:3px;height:11px;border-radius:1px;background:var(--navy)}
+  .led{width:7px;height:7px;border-radius:50%;background:#34F58C;border:1.5px solid var(--navy);box-shadow:0 0 7px #34F58C;animation:ledB 2.4s infinite ease-in-out}
+  @keyframes ledB{0%,100%{opacity:1}50%{opacity:.55}}
+  .meta-actions{display:flex;align-items:center;gap:5px}
+  .chip-btn{appearance:none;border:1.5px solid rgba(26,38,71,.28);background:rgba(255,248,235,.5);color:var(--navy);border-radius:99px;padding:3px 9px;font-family:var(--mono);font-size:11.5px;font-weight:900;cursor:pointer;display:flex;align-items:center;gap:3px}
+  .chip-btn.active{background:var(--purple);color:#fff;border-color:var(--navy)}
+  /* Screen */
+  .screen-bezel{flex:1 1 auto;min-height:0;position:relative;background:var(--deep);border-radius:14px;padding:5px;box-shadow:inset 0 3px 8px rgba(0,0,0,.62),0 2px 0 rgba(255,224,185,.45);display:flex}
+  .screen-vp{position:relative;flex:1;min-height:0;width:100%;border-radius:10px;overflow:hidden;background:#FFF6DF;touch-action:none;display:flex;align-items:center;justify-content:center}
+  .screen-vp::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:10;background:repeating-linear-gradient(0deg,rgba(16,24,48,.02) 0 1px,transparent 1px 3px)}
+  #map-svg{width:100%;height:100%;display:block;touch-action:none}
+  .route-glow{fill:none;stroke:rgba(255,87,34,.24);stroke-width:12;stroke-linecap:round;stroke-linejoin:round}
+  .route-dash{fill:none;stroke:#FF5722;stroke-width:4.5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:12 10;animation:march 1.1s linear infinite}
+  @keyframes march{to{stroke-dashoffset:-22}}
+  .route-orb{fill:#FFFDE7;stroke:#FF3D00;stroke-width:3}
+  .spot-node{cursor:pointer}
+  .spot-node .focus-halo{opacity:0;fill:none;stroke:#FF3D00;stroke-width:4.5;stroke-dasharray:7 4}
+  .spot-node.focused .focus-halo{opacity:1;animation:haloP 1s infinite ease-in-out}
+  @keyframes haloP{0%,100%{stroke-opacity:1;stroke-width:4.5}50%{stroke-opacity:.4;stroke-width:7}}
+  .spot-node.stamped .booth-bg{fill:#FFE169!important;stroke:#D94E14!important}
+  .spot-node .stamp-star{display:none}.spot-node.stamped .stamp-star{display:block}
+  .zoom-pill{position:absolute;top:7px;right:7px;z-index:14;appearance:none;border:2px solid var(--navy);background:rgba(255,248,235,.96);color:var(--navy);border-radius:99px;padding:3px 10px;font-family:var(--mono);font-size:11px;font-weight:900;box-shadow:2px 2px 0 var(--navy);cursor:pointer;opacity:0;pointer-events:none;transform:translateY(-6px);transition:opacity .18s,transform .18s}
+  .zoom-pill.show{opacity:1;pointer-events:auto;transform:translateY(0)}
+  .screen-banner{position:absolute;bottom:7px;left:50%;transform:translateX(-50%) translateY(12px);z-index:14;display:flex;align-items:center;gap:6px;background:rgba(26,38,71,.94);color:#fff;border:2px solid var(--yellow);border-radius:99px;padding:4px 12px 4px 7px;font-size:12px;font-weight:800;white-space:nowrap;max-width:92%;box-shadow:0 4px 12px rgba(0,0,0,.34);opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;cursor:pointer}
+  .screen-banner.show{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0)}
+  .screen-banner .b-code{font-family:var(--mono);background:var(--yellow);color:var(--navy);padding:1px 6px;border-radius:99px;font-size:11px;font-weight:900}
+  .screen-banner .b-name{overflow:hidden;text-overflow:ellipsis}
+  .screen-banner .b-go{color:var(--yellow);font-size:11px}
+  /* Controls */
+  .control-deck{flex:0 0 auto;padding:8px 6px 2px;display:flex;flex-direction:column;gap:5px}
+  .deck-row{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:0 4px}
+  .dpad{position:relative;width:78px;height:78px;flex-shrink:0}
+  .dpad-key{position:absolute;appearance:none;border:none;background:linear-gradient(180deg,#547FD0,#2E4E96 60%,#1D3469);color:rgba(255,255,255,.88);font-size:8.5px;display:grid;place-items:center;cursor:pointer;box-shadow:0 3px 0 #152348,0 5px 8px rgba(16,24,48,.35),inset 0 1.5px 0 rgba(255,255,255,.4);transition:transform .06s,box-shadow .06s}
+  .dpad-key:active{transform:translateY(2px);box-shadow:0 1px 0 #152348;color:var(--yellow)}
+  .d-up{top:0;left:26px;width:26px;height:28px;border-radius:6px 6px 0 0}
+  .d-dn{bottom:0;left:26px;width:26px;height:28px;border-radius:0 0 6px 6px}
+  .d-lt{left:0;top:26px;width:28px;height:26px;border-radius:6px 0 0 6px}
+  .d-rt{right:0;top:26px;width:28px;height:26px;border-radius:0 6px 6px 0}
+  .d-mid{position:absolute;top:26px;left:26px;width:26px;height:26px;background:linear-gradient(180deg,#3556A2,#243D78);border:none;cursor:pointer;display:grid;place-items:center;z-index:2}
+  .d-mid::after{content:"";width:10px;height:10px;border-radius:50%;background:rgba(16,24,48,.36)}
+  .scan-center{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;min-width:0}
+  .scan-btn{appearance:none;border:2.5px solid var(--navy);border-radius:99px;background:linear-gradient(180deg,#7F66C7,var(--purple) 55%,#513A8E);color:#fff;padding:10px 14px;font-size:13.5px;font-weight:900;letter-spacing:.04em;display:inline-flex;align-items:center;gap:5px;cursor:pointer;white-space:nowrap;box-shadow:0 4px 0 var(--navy),0 7px 14px rgba(16,24,48,.34),inset 0 2px 0 rgba(255,255,255,.34);transition:transform .07s,box-shadow .07s}
+  .scan-btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--navy)}
+  .speaker-dots{display:flex;gap:5px}
+  .speaker-dots i{display:block;width:4.5px;height:4.5px;border-radius:50%;background:#974814;box-shadow:inset 0 1px 1px rgba(0,0,0,.45),0 1px 0 rgba(255,220,174,.45);transition:transform .1s,background .1s}
+  .speaker-dots.pulse i{background:#5E2806;transform:scale(1.25)}
+  .zoom-pod{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:99px;background:rgba(168,78,14,.36);box-shadow:inset 0 2px 5px rgba(116,46,6,.45),0 1.5px 0 rgba(255,224,182,.42);transform:rotate(-10deg);flex-shrink:0}
+  .z-btn{appearance:none;border:none;border-radius:50%;color:#fff;font-family:var(--mono);display:grid;place-items:center;cursor:pointer;transform:rotate(10deg);box-shadow:0 4px 0 #162650,0 6px 10px rgba(16,24,48,.36),inset 0 2px 0 rgba(255,255,255,.42);transition:transform .06s,box-shadow .06s}
+  .z-btn:active{transform:rotate(10deg) translateY(3px);box-shadow:0 1px 0 #162650}
+  .z-minus{width:40px;height:40px;font-size:22px;background:linear-gradient(180deg,#6584BA,#445F94 55%,#304673)}
+  .z-plus{width:46px;height:46px;font-size:25px;background:linear-gradient(180deg,#5A8AF2,#3460C2 55%,#234596)}
+  .deck-hint{text-align:center;font-size:11px;font-weight:700;color:rgba(26,38,71,.82);letter-spacing:.03em}
+  /* QR Scanner Modal */
+  .scanner-modal{position:fixed;inset:0;z-index:70;background:rgba(12,18,38,.94);display:flex;flex-direction:column;padding:max(14px,env(safe-area-inset-top)) 16px max(16px,env(safe-area-inset-bottom));color:#fff;opacity:0;pointer-events:none;transition:opacity .2s}
+  .scanner-modal.open{opacity:1;pointer-events:auto}
+  .scan-head{display:flex;align-items:center;justify-content:space-between;padding-bottom:12px}
+  .scan-title{font-size:17px;font-weight:900}
+  .scan-close{appearance:none;width:36px;height:36px;border-radius:8px;border:2px solid rgba(255,255,255,.4);background:rgba(255,255,255,.12);color:#fff;font-size:16px;font-weight:900;cursor:pointer}
+  .vf-wrap{flex:1;min-height:0;position:relative;border-radius:16px;overflow:hidden;border:3px solid var(--yellow);background:#0A1022;display:flex;align-items:center;justify-content:center}
+  #scanVideo{width:100%;height:100%;object-fit:cover;display:block}
+  .scan-reticle{position:absolute;width:220px;height:220px;border-radius:16px;box-shadow:0 0 0 999px rgba(10,16,34,.45);pointer-events:none;border:3px solid var(--yellow)}
+  .scan-laser{position:absolute;left:10px;right:10px;height:3px;border-radius:99px;background:linear-gradient(90deg,transparent,#34F58C,var(--yellow),#34F58C,transparent);box-shadow:0 0 12px #34F58C;animation:laser 2s infinite ease-in-out}
+  @keyframes laser{0%,100%{top:14px}50%{top:calc(100% - 17px)}}
+  .scan-status{position:absolute;inset:0;padding:24px;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;background:rgba(12,18,38,.92);z-index:4}
+  .scan-status.show{display:flex}
+  .scan-foot{padding-top:12px;display:flex;flex-direction:column;gap:10px}
+  .scan-tip{text-align:center;font-size:13px;color:#D7E2FF;font-weight:700}
+  .scan-actions{display:flex;gap:8px}
+  .scan-alt{flex:1;appearance:none;border:2.5px solid var(--navy);border-radius:10px;background:var(--cream);color:var(--navy);box-shadow:0 3px 0 #0A1022;padding:11px 10px;font-size:13px;font-weight:900;text-align:center;cursor:pointer}
+  .scan-alt.pri{background:var(--yellow)}
+  /* Drawers */
+  .backdrop{position:fixed;inset:0;z-index:55;background:rgba(14,22,46,.6);display:flex;align-items:flex-end;justify-content:center;padding:10px 10px max(12px,env(safe-area-inset-bottom));opacity:0;pointer-events:none;transition:opacity .18s}
+  .backdrop.open{opacity:1;pointer-events:auto}
+  .dir-sheet,.detail-card{width:100%;background:var(--cream);border:3.5px solid var(--navy);border-radius:10px;box-shadow:5px 5px 0 var(--navy);overflow:hidden;transform:translateY(32px);transition:transform .22s cubic-bezier(.18,.92,.32,1.1)}
+  .backdrop.open .dir-sheet,.backdrop.open .detail-card{transform:translateY(0)}
+  .dir-sheet{max-height:76dvh;display:flex;flex-direction:column}
+  .dir-head{display:flex;align-items:center;justify-content:space-between;padding:11px 13px 8px;background:var(--cream2);border-bottom:2.5px solid var(--navy);font-size:15px;font-weight:900}
+  .dir-bar{padding:8px 12px 6px;display:flex;flex-direction:column;gap:7px;border-bottom:2px solid rgba(26,38,71,.12)}
+  .dir-input{width:100%;padding:8px 11px;border:2.5px solid var(--navy);border-radius:6px;background:#fff;font-size:13px;font-weight:700;color:var(--navy);outline:none;user-select:text;-webkit-user-select:text}
+  .dir-zones{display:flex;gap:5px;overflow-x:auto;scrollbar-width:none}.dir-zones::-webkit-scrollbar{display:none}
+  .dz-btn{appearance:none;border:2px solid var(--navy);border-radius:5px;background:#fff;color:var(--navy);padding:4px 9px;font-size:11px;font-weight:800;white-space:nowrap;cursor:pointer}
+  .dz-btn.active{background:var(--orange);color:#fff}
+  .dir-list{flex:1;overflow-y:auto;padding:8px 12px 12px;display:grid;grid-template-columns:1fr 1fr;gap:7px}
+  .dir-item{appearance:none;text-align:left;background:#fff;border:2px solid var(--navy);border-radius:6px;box-shadow:2px 2px 0 var(--navy);padding:7px 8px;cursor:pointer;display:flex;flex-direction:column;gap:3px}
+  .dir-code{font-family:var(--mono);font-size:11px;font-weight:900;color:#fff;padding:1px 6px;border-radius:4px}
+  .dir-name{font-size:12px;font-weight:800;color:var(--navy);line-height:1.3}
+  .detail-card{position:relative}
+  .card-awning{height:12px;border-bottom:3px solid var(--navy);background:repeating-linear-gradient(-45deg,var(--zc,var(--orange)) 0 12px,var(--cream) 12px 24px)}
+  .card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:12px 14px 8px}
+  .code-badge{display:inline-flex;font-family:var(--mono);font-size:12px;font-weight:900;letter-spacing:.08em;background:var(--zc,var(--orange));color:#fff;border:2.5px solid var(--navy);border-radius:5px;box-shadow:2px 2px 0 var(--navy);padding:2px 8px}
+  .zone-lbl{margin-left:6px;font-size:12px;font-weight:800;color:#546086}
+  .card-title{margin:8px 0 3px;font-size:19px;font-weight:900;line-height:1.25}
+  .card-team{font-size:12px;font-weight:800;color:var(--purple)}
+  .close-btn{appearance:none;width:32px;height:32px;flex-shrink:0;border:2.5px solid var(--navy);border-radius:6px;background:#fff;box-shadow:2px 2px 0 var(--navy);font-family:var(--mono);font-weight:900;font-size:15px;cursor:pointer}
+  .card-body{padding:4px 14px 12px}
+  .card-desc{background:#fff;border:2.5px solid var(--navy);border-radius:6px;padding:10px 12px;font-size:13.5px;line-height:1.58;color:#273252}
+  .card-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+  .tag-chip{font-size:11px;font-weight:800;background:var(--cream2);border:2px solid var(--navy);border-radius:4px;padding:2px 8px}
+  .card-foot{display:flex;align-items:center;gap:8px;padding:10px 14px 13px;background:var(--cream2);border-top:2.5px solid var(--navy)}
+  .nav-btn{appearance:none;background:#fff;color:var(--navy);border:2.5px solid var(--navy);border-radius:6px;box-shadow:2px 2px 0 var(--navy);padding:8px 10px;font-size:12px;font-weight:900;cursor:pointer;white-space:nowrap}
+  .card-scan-btn{flex:1;appearance:none;background:var(--purple);color:#fff;border:2.5px solid var(--navy);border-radius:6px;box-shadow:3px 3px 0 var(--navy);padding:8px 10px;font-size:12.5px;font-weight:900;cursor:pointer}
+  .card-scan-btn.done{background:var(--teal)}
+  .stamp-fx{position:absolute;right:16px;top:44px;width:74px;height:74px;border:4px solid #E53935;border-radius:50%;color:#E53935;background:rgba(255,248,235,.94);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;font-weight:900;line-height:1.12;opacity:0;pointer-events:none;transform:rotate(-16deg) scale(2.2)}
+  .stamp-fx.show{animation:slam .32s cubic-bezier(.16,.88,.32,1.2) forwards}
+  @keyframes slam{0%{opacity:0;transform:rotate(-24deg) scale(2.4)}65%{opacity:1;transform:rotate(-14deg) scale(.9)}100%{opacity:1;transform:rotate(-16deg) scale(1)}}
+  .shake{animation:shk .22s ease}@keyframes shk{0%,100%{transform:translate(0,0)}25%{transform:translate(-3px,2px)}50%{transform:translate(3px,-2px)}75%{transform:translate(-2px,1px)}}
+  .toast{position:fixed;top:max(54px,env(safe-area-inset-top));left:50%;transform:translateX(-50%) translateY(-10px);background:var(--navy);color:var(--yellow);border:2px solid var(--yellow);border-radius:99px;padding:6px 14px;font-size:12px;font-weight:800;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis;opacity:0;pointer-events:none;z-index:90;transition:opacity .2s,transform .2s}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+<main class="app">
+  <header class="top-header">
+    <div>
+      <h1 class="brand-title">亦庄具身智能嘉年华</h1>
+      <div class="brand-sub">亦庄机器人 × E-Bot Hub × 探月具身智能社区</div>
+    </div>
+    <div class="header-right">
+      <span class="brand-year">2026</span>
+      <button class="mute-btn" id="muteBtn" aria-label="音效">🔊</button>
+    </div>
+  </header>
+
+  <section class="console-shell" id="consoleShell">
+    <div class="shell-meta">
+      <div class="meta-left">
+        <span class="vent"><i></i><i></i><i></i><i></i></span>
+        <span>现场导览</span>
+        <span class="led"></span>
+      </div>
+      <div class="meta-actions">
+        <button class="chip-btn active" id="routeBtn">路线</button>
+        <button class="chip-btn" id="dirBtn"><span id="countTxt">已打卡 0/45</span> ▾</button>
+      </div>
+    </div>
+
+    <div class="screen-bezel">
+      <div class="screen-vp" id="screenVp">
+        <button class="zoom-pill" id="zoomPill">1.0x · 复原全景</button>
+        <div class="screen-banner" id="screenBanner">
+          <span class="b-code" id="bannerCode">M5</span>
+          <span class="b-name" id="bannerName">拼豆机器人</span>
+          <span class="b-go">看详情 ▶</span>
+        </div>
+        <svg id="map-svg" viewBox="0 0 800 1040" preserveAspectRatio="xMidYMid meet"></svg>
+      </div>
+    </div>
+
+    <div class="control-deck">
+      <div class="deck-row">
+        <div class="dpad">
+          <button class="dpad-key d-up" data-dir="up">▲</button>
+          <button class="dpad-key d-dn" data-dir="down">▼</button>
+          <button class="dpad-key d-lt" data-dir="left">◀</button>
+          <button class="dpad-key d-rt" data-dir="right">▶</button>
+          <button class="d-mid" id="dpadMid"></button>
+        </div>
+        <div class="scan-center">
+          <button class="scan-btn" id="openScanBtn">📷 扫码打卡</button>
+          <div class="speaker-dots" id="spkDots"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        </div>
+        <div class="zoom-pod">
+          <button class="z-btn z-minus" id="btnZoomOut">−</button>
+          <button class="z-btn z-plus" id="btnZoomIn">＋</button>
+        </div>
+      </div>
+      <div class="deck-hint">轻点展位看介绍 · 📷扫码打卡 · + 放大地图</div>
+    </div>
+  </section>
+</main>
+
+<!-- Built-in QR Scanner -->
+<div class="scanner-modal" id="scannerModal">
+  <div class="scan-head">
+    <div class="scan-title">📷 扫描展位二维码打卡</div>
+    <button class="scan-close" id="closeScanBtn">✕</button>
+  </div>
+  <div class="vf-wrap">
+    <video id="scanVideo" playsinline muted autoplay></video>
+    <div class="scan-reticle"><div class="scan-laser"></div></div>
+    <div class="scan-status" id="scanStatus">
+      <div style="font-size:38px">📸</div>
+      <div style="font-size:16px;font-weight:900" id="scanTitle">正在启动后置摄像头…</div>
+      <div style="font-size:12.5px;color:#C6D4F8;line-height:1.55" id="scanDesc">请允许网页访问相机，对准展位立牌上的二维码即可自动盖章！</div>
+    </div>
+  </div>
+  <div class="scan-foot">
+    <div class="scan-tip">将展位二维码放入黄框，识别成功自动“滴”声盖章</div>
+    <div class="scan-actions">
+      <label class="scan-alt pri">🖼 拍照 / 选图识码<input type="file" id="qrFile" accept="image/*" capture="environment" style="display:none"/></label>
+      <button class="scan-alt" id="simScanBtn">✨ 模拟扫码体验</button>
+    </div>
+  </div>
+</div>
+
+<!-- 45-Booth Directory -->
+<div class="backdrop" id="dirBackdrop">
+  <div class="dir-sheet">
+    <div class="dir-head"><span>🗺 45 个机器人展位速查</span><button class="close-btn" id="dirClose">✕</button></div>
+    <div class="dir-bar">
+      <input class="dir-input" id="dirSearch" type="search" placeholder="搜项目名 / 编号 / 高校（如 M5、拼豆、清华）..." />
+      <div class="dir-zones">
+        <button class="dz-btn active" data-z="ALL">全部 (45)</button>
+        <button class="dz-btn" data-z="Q">趣玩 Q</button>
+        <button class="dz-btn" data-z="M">人形 M</button>
+        <button class="dz-btn" data-z="S">桌面 S</button>
+        <button class="dz-btn" data-z="G">高校 G</button>
+        <button class="dz-btn" data-z="W">工坊 W</button>
+      </div>
+    </div>
+    <div class="dir-list" id="dirList"></div>
+  </div>
+</div>
+
+<!-- Project Detail Card -->
+<div class="backdrop" id="cardBackdrop">
+  <article class="detail-card" id="detailCard">
+    <div class="card-awning"></div>
+    <div class="stamp-fx" id="stampFx"><span>★</span><span>已打卡</span><span id="stampCode">M5</span></div>
+    <div class="card-head">
+      <div>
+        <div><span class="code-badge" id="cardCode">M5</span><span class="zone-lbl" id="cardZone">人形机器人展位</span></div>
+        <h2 class="card-title" id="cardTitle">拼豆机器人</h2>
+        <div class="card-team" id="cardTeam">灵生科技</div>
+      </div>
+      <button class="close-btn" id="cardClose">✕</button>
+    </div>
+    <div class="card-body">
+      <div class="card-desc" id="cardDesc"></div>
+      <div class="card-tags" id="cardTags"></div>
+    </div>
+    <div class="card-foot">
+      <button class="nav-btn" id="prevBtn">◀ 上一个</button>
+      <button class="card-scan-btn" id="cardScanBtn">📷 扫此展位码打卡</button>
+      <button class="nav-btn" id="nextBtn">下一个 ▶</button>
+    </div>
+  </article>
+</div>
+
+<script>
+/* ===== 1. Web Audio Handheld Sound Engine ===== */
+const SFX = (() => {
+  let ctx=null, master=null, muted=false, dots=null;
+  const pulse = () => {
+    dots = dots || document.getElementById('spkDots');
+    if(!dots) return;
+    dots.classList.add('pulse'); clearTimeout(dots._t);
+    dots._t = setTimeout(() => dots.classList.remove('pulse'), 110);
+  };
+  const ensure = () => {
+    if(muted) return null;
+    if(!ctx){
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if(!AC) return null;
+      ctx = new AC(); master = ctx.createGain(); master.gain.value = 0.36; master.connect(ctx.destination);
+    }
+    if(ctx.state === 'suspended') ctx.resume().catch(()=>{});
+    pulse(); return ctx;
+  };
+  const tone = (f,type,d,dur,pk=.24,sl=null) => {
+    const c = ensure(); if(!c) return;
+    const t = c.currentTime + d, o = c.createOscillator(), g = c.createGain();
+    o.type = type; o.frequency.setValueAtTime(f,t);
+    if(sl) o.frequency.exponentialRampToValueAtTime(sl,t+dur);
+    g.gain.setValueAtTime(.0001,t); g.gain.linearRampToValueAtTime(pk,t+.012);
+    g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+    o.connect(g); g.connect(master); o.start(t); o.stop(t+dur+.02);
+  };
+  const clickNoise = (dur=.022,freq=2400,pk=.16) => {
+    const c = ensure(); if(!c) return;
+    const len = Math.floor(c.sampleRate*dur), buf = c.createBuffer(1,len,c.sampleRate), ch = buf.getChannelData(0);
+    for(let i=0;i<len;i++) ch[i]=(Math.random()*2-1)*Math.exp(-i/(len*.35));
+    const s = c.createBufferSource(), fl = c.createBiquadFilter(), g = c.createGain();
+    s.buffer = buf; fl.type = 'bandpass'; fl.frequency.value = freq; g.gain.value = pk;
+    s.connect(fl); fl.connect(g); g.connect(master); s.start();
+  };
+  const vib = p => { if(navigator.vibrate) try{navigator.vibrate(p)}catch(_){} };
+  return {
+    unlock(){ ensure(); },
+    toggleMute(){ muted=!muted; if(!muted) this.click(); return muted; },
+    click(){ clickNoise(.02,2600,.16); tone(640,'triangle',0,.032,.14,430); vib(8); },
+    select(zi=0){
+      const sc=[523.25,587.33,659.25,783.99,880,987.77], f=sc[zi%sc.length];
+      clickNoise(.015,3200,.08); tone(f,'triangle',0,.075,.22,f*1.12); tone(f*2,'sine',.015,.06,.07); vib(10);
+    },
+    openCard(){ tone(587.33,'triangle',0,.07,.2); tone(783.99,'triangle',.045,.08,.22); tone(1046.5,'sine',.09,.16,.24); vib(12); },
+    closeCard(){ tone(520,'triangle',0,.06,.18,330); tone(330,'sine',.04,.09,.14,240); vib(8); },
+    zoomIn(){ clickNoise(.018,2800,.14); tone(440,'triangle',0,.055,.18,660); tone(660,'sine',.04,.08,.16,880); vib(10); },
+    zoomOut(){ clickNoise(.018,2100,.14); tone(660,'triangle',0,.055,.18,440); tone(440,'sine',.04,.08,.15,330); vib(8); },
+    scanBeep(){ tone(1320,'sine',0,.07,.24); tone(1760,'sine',.07,.10,.26); vib([15,25,15]); },
+    dup(){ tone(520,'triangle',0,.07,.18); tone(440,'triangle',.08,.10,.18); vib(12); },
+    stamp(){
+      tone(150,'sine',0,.14,.42,42); clickNoise(.05,900,.28);
+      tone(523.25,'triangle',.10,.10,.22); tone(659.25,'triangle',.18,.10,.22);
+      tone(783.99,'triangle',.26,.11,.24); tone(1046.5,'sine',.34,.34,.28); tone(1318.5,'triangle',.36,.30,.14);
+      vib([24,38,20]);
+    }
+  };
+})();
+window.addEventListener('pointerdown', () => SFX.unlock(), { once: true });
+
+/* ===== 2. All 45 Official Booths + 3 Landmarks ===== */
+const ZONES = {
+  Q:{name:'趣玩工坊',color:'#7B56C4',idx:0}, M:{name:'人形机器人展位',color:'#EE8226',idx:1},
+  S:{name:'桌面硬件展位',color:'#1F9D8B',idx:2}, G:{name:'高校角',color:'#3D9E49',idx:3},
+  W:{name:'Workshop 工坊',color:'#2B8A3E',idx:4}, L:{name:'嘉年华地标',color:'#2962FF',idx:5}
+};
+
+const RAW = [
+  // Q6-Q1
+  {id:'Q6',z:'Q',ic:'🧘',sh:'具身智能瑜伽搭子',name:'具身智能瑜伽搭子',team:'趣玩工坊参展团队',tags:['运动陪伴','姿态感知']},
+  {id:'Q5',z:'Q',ic:'🎨',sh:'AI 绘画机械臂',name:'AI 绘画机械臂',team:'趣玩工坊参展团队',tags:['生成式AI','艺术创作']},
+  {id:'Q4',z:'Q',ic:'👨‍🍳',sh:'具身餐饮机器人',name:'具身餐饮机器人',team:'趣玩工坊参展团队',tags:['具身智能','餐饮服务']},
+  {id:'Q3',z:'Q',ic:'🎲',sh:'AI 桌游机器人',name:'AI 桌游机器人',team:'趣玩工坊参展团队',tags:['AI博弈','亲子互动']},
+  {id:'Q2',z:'Q',ic:'🦾',sh:'桌面机械臂 D1',name:'桌面级机械臂互动 D1',team:'趣玩工坊参展团队',tags:['桌面机械臂','精准交互']},
+  {id:'Q1',z:'Q',ic:'📜',sh:'文化复活机器人',name:'文化复活机器人',team:'趣玩工坊参展团队',tags:['文化创意','互动体验']},
+  // M12-M15 / M8-M11 / M4-M7
+  {id:'M12',z:'M',ic:'🤿',sh:'水下自主\n跟拍机器人',name:'水下自主跟拍机器人',team:'水下机器人团队',tags:['水下视觉','自主追踪']},
+  {id:'M13',z:'M',ic:'🦾',sh:'移动抓取\n机械臂平台',name:'移动抓取机械臂平台',team:'移动操作团队',tags:['Mobile Manipulation','底盘+臂']},
+  {id:'M14',z:'M',ic:'🩺',sh:'智诊\n机器人',name:'智诊机器人',team:'医疗具身团队',tags:['智慧医疗','辅助诊断']},
+  {id:'M15',z:'M',ic:'🦿',sh:'Kudada\n双足机器人',name:'Oringin Kudada 双足机器人',team:'Oringin 团队',tags:['双足运动','动态平衡']},
+  {id:'M8',z:'M',ic:'🧠',sh:'一脑多机\n群体智能',name:'一脑多机·群体智能',team:'多机协同团队',tags:['一脑多机','协同调度']},
+  {id:'M9',z:'M',ic:'💡',sh:'AI 远程\n互动餐灯',name:'AI 远程互动餐灯',team:'智能硬件开发者',tags:['远程情感','AI硬件']},
+  {id:'M10',z:'M',ic:'☕',sh:'SynDexy\nCoffeeBot',name:'SynDexy CoffeeBot',team:'SynDexy 团队',tags:['咖啡制作','双臂协同']},
+  {id:'M11',z:'M',ic:'🤖',sh:'DingDong\n科教陪伴',name:'DingDong 科教陪伴机器人',team:'科教机器人团队',tags:['STEM教育','语音陪伴']},
+  {id:'M4',z:'M',ic:'🥣',sh:'喂饭\n机器人',name:'喂饭机器人',team:'具身辅具团队',tags:['康养助老','柔性抓取']},
+  {id:'M5',z:'M',ic:'🧩',sh:'拼豆\n机器人',name:'拼豆机器人',team:'灵生科技',desc:'结合视觉识别与高精度灵巧操作，现场为你自动拼出像素风机器人图案，欢迎围观互动！',tags:['明星项目','视觉定位','灵巧操作']},
+  {id:'M6',z:'M',ic:'🧸',sh:'IP 手办\n机器人',name:'IP 手办机器人',team:'潮玩机器人团队',tags:['潮玩IP','桌面拟人']},
+  {id:'M7',z:'M',ic:'🚛',sh:'户外垃圾\n清运机器人',name:'户外垃圾清运机器人',team:'自主移动团队',tags:['户外导航','自动作业']},
+  // W1 + M1/M3/M2 + W2
+  {id:'W1',z:'W',ic:'⚽',sh:'踢球人形机器人',name:'会踢球的人形机器人',team:'Workshop 工坊 01 · 足球场',desc:'现场机器人绿茵球场！亲眼看人形机器人自主寻球、传球与射门，还可参与工坊互动！',tags:['Workshop 01','绿茵球场']},
+  {id:'M1',z:'M',ic:'🦀',sh:'「跳跳」\n螃蟹机器人',name:'「跳跳」螃蟹机器人',team:'探月社区开发者',tags:['仿生步态','多足机械']},
+  {id:'M3',z:'M',ic:'🚀',sh:'亦衍科技',name:'亦衍科技',team:'亦衍科技',desc:'专注前沿具身智能与机器人本体创新研发，现场可近距离体验整机交互演示。',tags:['整机研发','亦庄本土']},
+  {id:'M2',z:'M',ic:'✨',sh:'桌面具身\n交互新物种',name:'桌面具身交互新物种',team:'具身交互团队',tags:['多模态交互','桌面伙伴']},
+  {id:'W2',z:'W',ic:'🐕',sh:'智能大头机器狗',name:'智能大头机器狗',team:'Workshop 工坊 02 · 零零后科技 张振尧',desc:'零零后硬核极客打造的智能大头机器狗，现场拆解结构原理并开放手把手体验！',tags:['Workshop 02','零零后科技']},
+  // S10-S1
+  {id:'S10',z:'S',ic:'🦴',sh:'连续碳纤维3D打印骨骼',name:'连续碳纤维 3D 打印骨骼',team:'先进制造团队',tags:['轻量化结构','碳纤维3D打印']},
+  {id:'S9',z:'S',ic:'🦆',sh:'机器人小鸭子',name:'机器人小鸭子',team:'开源极客创客',desc:'超萌高人气的开源桌面仿生小鸭子！会摇头晃脑跟你互动，现场可上手近距离逗它玩。',tags:['超萌人气','仿生互动']},
+  {id:'S8',z:'S',ic:'🛋️',sh:'一个活过来的台灯',name:'一个活过来的台灯',team:'独立硬件创作者',tags:['皮克斯风','拟人动效']},
+  {id:'S7',z:'S',ic:'😷',sh:'默适语音输入口罩',name:'默适语音输入口罩',team:'可穿戴硬件团队',tags:['静默输入','可穿戴']},
+  {id:'S6',z:'S',ic:'🎇',sh:'动效·灯效桌面机器人',name:'动效·灯效桌面机器人',team:'创客实验室',tags:['光影交互','极客桌面']},
+  {id:'S5',z:'S',ic:'🐱',sh:'猫咪运动驱动套件',name:'猫咪运动驱动套件',team:'开源硬件作者',tags:['仿生关节','开源套件']},
+  {id:'S4',z:'S',ic:'💭',sh:'情绪感知桌面机器人',name:'青少年情绪感知桌面机器人',team:'情感计算团队',tags:['情绪识别','桌面陪伴']},
+  {id:'S3',z:'S',ic:'🪞',sh:'物理AI面部美学伴侣',name:'物理 AI 面部美学伴侣',team:'消费硬件团队',tags:['Physical AI','智能个护']},
+  {id:'S2',z:'S',ic:'🎵',sh:'AI 智能音乐机',name:'AI 智能音乐机',team:'声音硬件开发者',tags:['AI作曲','复古声学']},
+  {id:'S1',z:'S',ic:'🩺',sh:'轻量化腹部超声机器人',name:'轻量化腹部超声机器人',team:'医疗机器人团队',tags:['医疗影像','柔顺力控']},
+  // G12-G1
+  {id:'G12',z:'G',sh:'北科\n职大',name:'北京科技职业大学',team:'智能制造学院团队',tags:['工程实践','技能创新']},
+  {id:'G11',z:'G',sh:'亦庄\n实验',name:'北京亦庄实验中学',team:'青少年科创社团',tags:['少年极客','新生代']},
+  {id:'G10',z:'G',sh:'哈工大\n深圳',name:'哈尔滨工业大学（深圳）',team:'哈工大（深圳）团队',tags:['高校科研','机器人强校']},
+  {id:'G9',z:'G',sh:'RebuildZ',name:'RebuildZ',team:'RebuildZ 青年极客',tags:['极客社区','硬核自造']},
+  {id:'G8',z:'G',sh:'北京\n理工',name:'北京理工大学',team:'北京理工大学团队',tags:['高校科研','仿生机器人']},
+  {id:'G7',z:'G',sh:'北京\n大学',name:'北京大学',team:'北京大学具身团队',tags:['高校科研','通用具身']},
+  {id:'G6',z:'G',sh:'北京\n化工',name:'北京化工大学',team:'北京化工大学团队',tags:['高校科研','机电系统']},
+  {id:'G5',z:'G',sh:'天津\n大学',name:'天津大学',team:'天津大学机器人团队',tags:['高校科研','机构创新']},
+  {id:'G4',z:'G',sh:'北航',name:'北京航空航天大学',team:'北航机器人团队',tags:['高校科研','空天与控制']},
+  {id:'G3',z:'G',sh:'北京\n邮电',name:'北京邮电大学',team:'北邮机器人团队',tags:['高校科研','通信与AI']},
+  {id:'G2',z:'G',sh:'浙江\n大学',name:'浙江大学',team:'浙大机器人团队',tags:['高校科研','具身智能']},
+  {id:'G1',z:'G',sh:'清华\n大学',name:'清华大学',team:'清华机器人团队',tags:['高校科研','前沿探索']},
+  // 3 Landmarks
+  {id:'STAGE',z:'L',lm:true,sh:'主舞台',name:'主舞台 · 机器人开发者盛会',team:'亦庄机器人 × 未来机域 × 探月社区',desc:'全天主题分享、重磅机器人新品演示与开发者对谈主阵地，前方设有观众席，欢迎落座围观！',tags:['主舞台','主题分享']},
+  {id:'PHOTO',z:'L',lm:true,sh:'互动打卡区',name:'互动打卡区',team:'现场拍照留念点',desc:'嘉年华专属主题打卡背景墙！逛展之余记得在这里和机器人立牌合影留念。',tags:['拍照打卡','嘉年华留念']},
+  {id:'LUCKY',z:'L',lm:true,sh:'抽奖区',name:'现场抽奖区',team:'嘉年华福利站',desc:'逛完展区别忘了来抽奖区碰碰运气！具体参与方式以现场工作人员指引为准。',tags:['互动福利','惊喜抽奖']}
+];
+
+const SPOTS = RAW.map(s => {
+  let x=0,y=0,w=68,h=88;
+  if(s.z==='Q'){const n=6-parseInt(s.id.slice(1));x=26;y=186+n*62;w=174;h=54;}
+  else if(s.z==='G'){const i=['G12','G11','G10','G9','G8','G7','G6','G5','G4','G3','G2','G1'].indexOf(s.id);x=24+(i%3)*61;y=758+Math.floor(i/3)*47;w=56;h=41;}
+  else if(s.z==='S'){const n=10-parseInt(s.id.slice(1));x=578;y=376+n*39.5;w=192;h=35;}
+  else if(s.id==='W2'){x=568;y=150;w=212;h=166;}
+  else if(s.id==='W1'){x=314;y=686;w=148;h=200;}
+  else if(s.id==='M1'){x=242;y=780;w=66;h=106;}
+  else if(s.id==='M3'){x=468;y=716;w=66;h=76;}
+  else if(s.id==='M2'){x=468;y=800;w=66;h=86;}
+  else if(s.z==='M'){
+    const g=[['M12','M13','M14','M15'],['M8','M9','M10','M11'],['M4','M5','M6','M7']];
+    for(let r=0;r<3;r++){const c=g[r].indexOf(s.id);if(c>-1){x=[242,314,394,466][c];y=380+r*100;w=68;h=88;}}
+  }
+  else if(s.id==='STAGE'){x=248;y=126;w=284;h=94;}
+  else if(s.id==='PHOTO'){x=18;y=584;w=192;h=116;}
+  else if(s.id==='LUCKY'){x=568;y=794;w=212;h=158;}
+  return {...s,x,y,w,h,cx:x+w/2,cy:y+h/2,desc:s.desc||`位于「${ZONES[s.z].name}」${s.id} 号展位的机器人创新项目。欢迎走到展位前与开发者交流、上手体验，扫码即可打卡点亮！`};
+});
+const BOOTHS = SPOTS.filter(s => !s.lm);
+
+/* ===== 3. State & DOM ===== */
+const KEY = 'yizhuang_carnival_stamps_v3';
+const state = {
+  scale:1, tx:0, ty:0, focusedId:null, cardOpen:false, showRoute:true, dirZone:'ALL', wasDragged:false,
+  stamped: new Set((()=>{try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(_){return[]}})())
+};
+const $ = id => document.getElementById(id);
+const el = {
+  shell:$('consoleShell'),toast:$('toast'),mute:$('muteBtn'),routeBtn:$('routeBtn'),dirBtn:$('dirBtn'),
+  countTxt:$('countTxt'),vp:$('screenVp'),svg:$('map-svg'),zoomPill:$('zoomPill'),banner:$('screenBanner'),
+  bCode:$('bannerCode'),bName:$('bannerName'),dirBg:$('dirBackdrop'),dirSearch:$('dirSearch'),dirList:$('dirList'),
+  cardBg:$('cardBackdrop'),card:$('detailCard'),cCode:$('cardCode'),cZone:$('cardZone'),cTitle:$('cardTitle'),
+  cTeam:$('cardTeam'),cDesc:$('cardDesc'),cTags:$('cardTags'),sFx:$('stampFx'),sCode:$('stampCode'),cScan:$('cardScanBtn'),
+  sModal:$('scannerModal'),sVid:$('scanVideo'),sBox:$('scanStatus'),sTit:$('scanTitle'),sDesc:$('scanDesc'),qrFile:$('qrFile')
+};
+let toastT=null;
+const toast = m => { el.toast.textContent=m; el.toast.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>el.toast.classList.remove('show'),2200); };
+
+/* ===== 4. Built-in Vector Official Map Renderer ===== */
+let camG=null, routeG=null;
+function buildMap(){
+  const NS='http://www.w3.org/2000/svg';
+  const mk=(t,a={},txt=null)=>{const n=document.createElementNS(NS,t);for(const[k,v]of Object.entries(a))n.setAttribute(k,v);if(txt!==null)n.textContent=txt;return n;};
+  const mtxt=(p,x,y,str,fs,fill,gap=13)=>{
+    const ls=String(str).split('\n'), t=mk('text',{x,y:y-((ls.length-1)*gap)/2,'text-anchor':'middle',fill,'font-size':fs,'font-weight':900});
+    ls.forEach((l,i)=>t.appendChild(mk('tspan',{x,dy:i?gap:0},l))); p.appendChild(t);
+  };
+  el.svg.innerHTML='';
+  const defs=mk('defs');
+  defs.innerHTML=`
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#3B9BFF"/><stop offset="55%" stop-color="#87D4FF"/><stop offset="100%" stop-color="#FFF5DB"/></linearGradient>
+    <linearGradient id="rib" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#1945A8"/><stop offset="50%" stop-color="#296BF0"/><stop offset="100%" stop-color="#1945A8"/></linearGradient>
+    <pattern id="tent" width="20" height="20" patternUnits="userSpaceOnUse"><rect width="10" height="20" fill="#FF6B35"/><rect x="10" width="10" height="20" fill="#FFF8EB"/></pattern>
+    <path id="walkPath" d="M 400 962 L 400 926 L 224 926 L 224 338 L 554 338 L 554 926 L 400 926"/>
+  `;
+  el.svg.appendChild(defs);
+  camG=mk('g',{id:'camG'}); el.svg.appendChild(camG);
+
+  // Sky, clouds, bunting, corner tents & title banner
+  camG.appendChild(mk('rect',{x:0,y:0,width:800,height:1040,fill:'#FFF5DB'}));
+  camG.appendChild(mk('rect',{x:0,y:0,width:800,height:160,fill:'url(#sky)'}));
+  [[110,46,32],[690,44,34]].forEach(([cx,cy,r])=>{camG.appendChild(mk('circle',{cx,cy,r,fill:'rgba(255,255,255,.65)'}));camG.appendChild(mk('circle',{cx:cx+r*.7,cy:cy+4,r:r*.7,fill:'rgba(255,255,255,.65)'}));});
+  camG.appendChild(mk('polygon',{points:'0,124 0,66 76,124',fill:'url(#tent)',stroke:'#1A2647','stroke-width':2.5}));
+  camG.appendChild(mk('polygon',{points:'800,124 800,66 724,124',fill:'url(#tent)',stroke:'#1A2647','stroke-width':2.5}));
+  ['#FF6B2B','#FFC93C','#2980FF','#6C5CE7','#00B894'].forEach((c,idx)=>{});
+  for(let i=0;i<16;i++){const bx=28+i*47;camG.appendChild(mk('polygon',{points:`${bx},82 ${bx+22},82 ${bx+11},100`,fill:['#FF6B2B','#FFC93C','#2980FF','#6C5CE7','#00B894'][i%5],stroke:'#1A2647','stroke-width':1.4}));}
+  camG.appendChild(mk('text',{x:86,y:108,'text-anchor':'middle','font-size':40},'🤖'));
+  camG.appendChild(mk('text',{x:714,y:106,'text-anchor':'middle','font-size':38},'🤖'));
+  camG.appendChild(mk('text',{x:752,y:64,'text-anchor':'middle','font-size':28},'🎈'));
+  camG.appendChild(mk('rect',{x:138,y:12,width:524,height:60,rx:30,fill:'url(#rib)',stroke:'#FFC93C','stroke-width':4}));
+  camG.appendChild(mk('text',{x:400,y:52,'text-anchor':'middle',fill:'#FFF','font-size':32,'font-weight':900,'letter-spacing':2},'2026亦庄具身智能嘉年华'));
+  camG.appendChild(mk('rect',{x:288,y:66,width:224,height:32,rx:16,fill:'#FFF8EB',stroke:'#F4A326','stroke-width':3.5}));
+  camG.appendChild(mk('text',{x:400,y:89,'text-anchor':'middle',fill:'#1A3E8C','font-size':20,'font-weight':900,'letter-spacing':4},'现场导览图'));
+
+  // Zone Containers: 趣玩工坊 (Left Top)
+  camG.appendChild(mk('polygon',{points:'16,158 114,116 212,158',fill:'url(#tent)',stroke:'#1A2647','stroke-width':2.5}));
+  camG.appendChild(mk('rect',{x:16,y:152,width:196,height:418,rx:18,fill:'#C4B5FD',stroke:'#7B56C4','stroke-width':3.5}));
+  camG.appendChild(mk('rect',{x:203,y:184,width:6,height:368,rx:3,fill:'#3B5BDB'}));
+  camG.appendChild(mk('rect',{x:40,y:140,width:148,height:32,rx:16,fill:'#2B5CE6',stroke:'#FFF8EB','stroke-width':3}));
+  camG.appendChild(mk('text',{x:114,y:163,'text-anchor':'middle',fill:'#FFF','font-size':18,'font-weight':900,'letter-spacing':2},'趣玩工坊'));
+
+  // 高校角 (Left Bottom)
+  camG.appendChild(mk('rect',{x:16,y:718,width:196,height:234,rx:16,fill:'#E8F8E9',stroke:'#3D9E49','stroke-width':3.5}));
+  camG.appendChild(mk('rect',{x:32,y:712,width:164,height:32,rx:16,fill:'#2F8F46',stroke:'#FFF8EB','stroke-width':3}));
+  camG.appendChild(mk('text',{x:114,y:734,'text-anchor':'middle',fill:'#FFF','font-size':17,'font-weight':900,'letter-spacing':3},'🎓 高校角'));
+
+  // 观众席 (Center Upper)
+  camG.appendChild(mk('rect',{x:334,y:230,width:112,height:24,rx:12,fill:'#FFF8EB',stroke:'#F4A326','stroke-width':2.5}));
+  camG.appendChild(mk('text',{x:390,y:247,'text-anchor':'middle',fill:'#1A3E8C','font-size':14,'font-weight':900},'观 众 席'));
+  for(let r=0;r<3;r++)for(let c=0;c<12;c++)camG.appendChild(mk('rect',{x:246+c*24,y:262+r*17,width:17,height:11,rx:3,fill:'#DCE6F7',stroke:'#6E85B2','stroke-width':1.2}));
+
+  // 人形机器人展位 (Center)
+  camG.appendChild(mk('polygon',{points:'238,366 293,332 348,366',fill:'url(#tent)',stroke:'#C85A17','stroke-width':1.8}));
+  camG.appendChild(mk('polygon',{points:'428,366 483,332 538,366',fill:'url(#tent)',stroke:'#C85A17','stroke-width':1.8}));
+  camG.appendChild(mk('rect',{x:290,y:336,width:196,height:32,rx:16,fill:'#2355D6',stroke:'#FFC93C','stroke-width':3}));
+  camG.appendChild(mk('text',{x:388,y:358,'text-anchor':'middle',fill:'#FFF','font-size':18,'font-weight':900},'人形机器人展位'));
+  camG.appendChild(mk('rect',{x:236,y:374,width:304,height:522,rx:14,fill:'#2A6BD6',stroke:'#1A2647','stroke-width':3}));
+  camG.appendChild(mk('rect',{x:239,y:680,width:298,height:213,rx:10,fill:'#F79D3E'}));
+
+  // 桌面硬件展位 (Right)
+  camG.appendChild(mk('rect',{x:568,y:344,width:212,height:436,rx:18,fill:'#D8F1F8',stroke:'#2B6CB0','stroke-width':3.5}));
+  camG.appendChild(mk('rect',{x:586,y:332,width:176,height:32,rx:16,fill:'#2355D6',stroke:'#FFC93C','stroke-width':3}));
+  camG.appendChild(mk('text',{x:674,y:354,'text-anchor':'middle',fill:'#FFF','font-size':18,'font-weight':900},'桌面硬件展位'));
+
+  // Bottom Entrance + Bushes
+  camG.appendChild(mk('rect',{x:110,y:960,width:580,height:42,rx:10,fill:'#FFE8B8',stroke:'#D97B29','stroke-width':2.5}));
+  [185,300,500,615].forEach(bx=>camG.appendChild(mk('circle',{cx:bx,cy:972,r:10,fill:'#E53935',stroke:'#FFF','stroke-width':2})));
+  camG.appendChild(mk('rect',{x:342,y:988,width:116,height:36,rx:18,fill:'#FFF8EB',stroke:'#EE8226','stroke-width':3.5}));
+  camG.appendChild(mk('text',{x:400,y:1013,'text-anchor':'middle',fill:'#D95B16','font-size':19,'font-weight':900,'letter-spacing':4},'▲ 入口'));
+  [[24,1020,46],[74,1030,36],[776,1020,46],[726,1030,36]].forEach(([cx,cy,r])=>camG.appendChild(mk('circle',{cx,cy,r,fill:'#4CAF50',stroke:'#2E7D32','stroke-width':2.5})));
+
+  // Animated Walkway Route
+  routeG=mk('g',{id:'routeG'});
+  routeG.appendChild(mk('use',{href:'#walkPath',class:'route-glow'}));
+  routeG.appendChild(mk('use',{href:'#walkPath',class:'route-dash'}));
+  [0,-4,-8].forEach(b=>{
+    const o=mk('circle',{r:7,class:'route-orb'}), a=mk('animateMotion',{dur:'12s',begin:`${b}s`,repeatCount:'indefinite'});
+    a.appendChild(mk('mpath',{href:'#walkPath'})); o.appendChild(a); routeG.appendChild(o);
+  });
+  camG.appendChild(routeG);
+
+  // Render All 48 Interactive Spots
+  SPOTS.forEach(s=>{
+    const g=mk('g',{class:'spot-node','data-id':s.id});
+    g.appendChild(mk('rect',{class:'focus-halo',x:s.x-4,y:s.y-4,width:s.w+8,height:s.h+8,rx:10}));
+    if(s.id==='STAGE'){
+      g.appendChild(mk('rect',{class:'booth-bg',x:s.x,y:s.y,width:s.w,height:s.h,rx:12,fill:'#2049B8',stroke:'#1A2647','stroke-width':3.5}));
+      g.appendChild(mk('rect',{x:s.x+16,y:s.y+22,width:s.w-32,height:54,rx:8,fill:'#2B6CF6',stroke:'#7CC0FF','stroke-width':2}));
+      g.appendChild(mk('text',{x:s.cx,y:s.y+58,'text-anchor':'middle',fill:'#FFF','font-size':27,'font-weight':900,'letter-spacing':6},'主舞台'));
+      g.appendChild(mk('rect',{x:s.x-22,y:s.y+18,width:18,height:66,rx:4,fill:'#33426B',stroke:'#1A2647','stroke-width':2}));
+      g.appendChild(mk('rect',{x:s.x+s.w+4,y:s.y+18,width:18,height:66,rx:4,fill:'#33426B',stroke:'#1A2647','stroke-width':2}));
+    }else if(s.id==='PHOTO'){
+      g.appendChild(mk('polygon',{points:`${s.x},${s.y+24} ${s.cx},${s.y-4} ${s.x+s.w},${s.y+24}`,fill:'url(#tent)',stroke:'#C85A17','stroke-width':2}));
+      g.appendChild(mk('rect',{class:'booth-bg',x:s.x,y:s.y+20,width:s.w,height:s.h-20,rx:12,fill:'#FFF5D6',stroke:'#E89B25','stroke-width':3}));
+      g.appendChild(mk('rect',{x:s.x+24,y:s.y+8,width:s.w-48,height:24,rx:12,fill:'#2355D6',stroke:'#FFF','stroke-width':2}));
+      g.appendChild(mk('text',{x:s.cx,y:s.y+25,'text-anchor':'middle',fill:'#FFF','font-size':14,'font-weight':900},'互动打卡区'));
+      g.appendChild(mk('text',{x:s.cx-30,y:s.y+82,'text-anchor':'middle','font-size':34},'🤖'));
+      g.appendChild(mk('text',{x:s.cx+32,y:s.y+80,'text-anchor':'middle','font-size':28},'📸'));
+    }else if(s.id==='LUCKY'){
+      g.appendChild(mk('polygon',{points:`${s.x+8},${s.y+30} ${s.cx},${s.y-4} ${s.x+s.w-8},${s.y+30}`,fill:'url(#tent)',stroke:'#C85A17','stroke-width':2}));
+      g.appendChild(mk('rect',{class:'booth-bg',x:s.x,y:s.y+26,width:s.w,height:s.h-26,rx:14,fill:'#FFF3CC',stroke:'#EE8226','stroke-width':3}));
+      g.appendChild(mk('rect',{x:s.x+42,y:s.y+14,width:s.w-84,height:28,rx:14,fill:'#2355D6',stroke:'#FFC93C','stroke-width':2.5}));
+      g.appendChild(mk('text',{x:s.cx,y:s.y+34,'text-anchor':'middle',fill:'#FFF','font-size':16,'font-weight':900},'抽奖区'));
+      g.appendChild(mk('text',{x:s.cx-36,y:s.y+114,'text-anchor':'middle','font-size':36},'🤖'));
+      g.appendChild(mk('text',{x:s.cx+28,y:s.y+112,'text-anchor':'middle','font-size':42},'🎁'));
+    }else if(s.id==='W2'){
+      g.appendChild(mk('polygon',{points:`${s.x+12},${s.y+22} ${s.cx},${s.y-16} ${s.x+s.w-12},${s.y+22}`,fill:'url(#tent)',stroke:'#C85A17','stroke-width':2}));
+      g.appendChild(mk('rect',{class:'booth-bg',x:s.x,y:s.y+18,width:s.w,height:s.h-18,rx:16,fill:'#FFE566',stroke:'#E09F1F','stroke-width':3.5}));
+      g.appendChild(mk('rect',{x:s.x+12,y:s.y+28,width:46,height:24,rx:12,fill:'#2355D6'}));
+      g.appendChild(mk('text',{x:s.x+35,y:s.y+45,'text-anchor':'middle',fill:'#FFF','font-family':'monospace','font-size':14,'font-weight':900},'W2'));
+      g.appendChild(mk('text',{x:s.x+128,y:s.y+44,'text-anchor':'middle',fill:'#1A2647','font-size':12,'font-weight':900},'Workshop 工坊 02'));
+      g.appendChild(mk('text',{x:s.x+82,y:s.y+72,'text-anchor':'middle',fill:'#1A2647','font-size':15.5,'font-weight':900},'智能大头机器狗'));
+      for(let r=0;r<3;r++)for(let c=0;c<4;c++)g.appendChild(mk('rect',{x:s.x+16+c*22,y:s.y+86+r*20,width:15,height:12,rx:3,fill:'#FFF8EB',stroke:'#C88D19','stroke-width':1.2}));
+      g.appendChild(mk('text',{x:s.x+158,y:s.y+130,'text-anchor':'middle','font-size':50},'🐕'));
+    }else if(s.id==='W1'){
+      g.appendChild(mk('rect',{class:'booth-bg',x:s.x,y:s.y,width:s.w,height:s.h,rx:12,fill:'#4CAF50',stroke:'#1A2647','stroke-width':3}));
+      g.appendChild(mk('rect',{x:s.x+4,y:s.y+4,width:s.w-8,height:28,rx:8,fill:'#FFF8EB'}));
+      g.appendChild(mk('rect',{x:s.x+8,y:s.y+8,width:34,height:20,rx:8,fill:'#2355D6'}));
+      g.appendChild(mk('text',{x:s.x+25,y:s.y+22,'text-anchor':'middle',fill:'#FFF','font-family':'monospace','font-size':12,'font-weight':900},'W1'));
+      g.appendChild(mk('text',{x:s.x+94,y:s.y+22,'text-anchor':'middle',fill:'#1A2647','font-size':11,'font-weight':900},'踢球人形机器人'));
+      g.appendChild(mk('rect',{x:s.x+10,y:s.y+42,width:s.w-20,height:s.h-54,rx:4,fill:'none',stroke:'rgba(255,255,255,.85)','stroke-width':2}));
+      g.appendChild(mk('line',{x1:s.cx,y1:s.y+42,x2:s.cx,y2:s.y+s.h-12,stroke:'rgba(255,255,255,.85)','stroke-width':2}));
+      g.appendChild(mk('circle',{cx:s.cx,cy:s.y+114,r:22,fill:'none',stroke:'rgba(255,255,255,.85)','stroke-width':2}));
+      g.appendChild(mk('text',{x:s.cx-12,y:s.y+128,'text-anchor':'middle','font-size':44},'🤖'));
+      g.appendChild(mk('text',{x:s.cx+26,y:s.y+146,'text-anchor':'middle','font-size':22},'⚽'));
+    }else if(s.z==='Q'){
+      g.appendChild(mk('rect',{class:'booth-bg',x:s.x,y:s.y,width:s.w,height:s.h,rx:10,fill:'#FFF',stroke:'#7B56C4','stroke-width':2.4}));
+      g.appendChild(mk('text',{x:s.x+26,y:s.y+37,'text-anchor':'middle','font-size':25},s.ic));
+      g.appendChild(mk('rect',{x:s.x+54,y:s.y+6,width:34,height:17,rx:6,fill:'#7B56C4'}));
+      g.appendChild(mk('text',{x:s.x+71,y:s.y+18.5,'text-anchor':'middle',fill:'#FFF','font-family':'monospace','font-size':11,'font-weight':900},s.id));
+      g.appendChild(mk('text',{x:s.x+54,y:s.y+41,fill:'#1A2647','font-size':12.8,'font-weight':900},s.sh));
+    }else if(s.z==='S'){
+      g.appendChild(mk('rect',{class:'booth-bg',x:s.x,y:s.y,width:s.w,height:s.h,rx:8,fill:'#FFF',stroke:'#2B839B','stroke-width':2}));
+      g.appendChild(mk('rect',{x:s.x+5,y:s.y+6,width:34,height:23,rx:6,fill:'#1F9D8B'}));
+      g.appendChild(mk('text',{x:s.x+22,y:s.y+21.5,'text-anchor':'middle',fill:'#FFF','font-family':'monospace','font-size':11.5,'font-weight':900},s.id));
+      g.appendChild(mk('text',{x:s.x+44,y:s.y+22,fill:'#1A2647','font-size':11.2,'font-weight':900},s.sh));
+      g.appendChild(mk('text',{x:s.x+s.w-15,y:s.y+23.5,'text-anchor':'middle','font-size':15},s.ic));
+    }else if(s.z==='G'){
+      g.appendChild(mk('rect',{class:'booth-bg',x:s.x,y:s.y,width:s.w,height:s.h,rx:7,fill:'#FFF',stroke:'#3D9E49','stroke-width':2}));
+      g.appendChild(mk('rect',{x:s.x+11,y:s.y+3,width:s.w-22,height:13,rx:5,fill:'#3D9E49'}));
+      g.appendChild(mk('text',{x:s.cx,y:s.y+12.5,'text-anchor':'middle',fill:'#FFF','font-family':'monospace','font-size':9.5,'font-weight':900},s.id));
+      mtxt(g,s.cx,s.y+29,s.sh,9.8,'#1A2647',10.5);
+    }else{
+      g.appendChild(mk('rect',{class:'booth-bg',x:s.x,y:s.y,width:s.w,height:s.h,rx:8,fill:'#FF9E3D',stroke:'#C85A17','stroke-width':2.2}));
+      g.appendChild(mk('rect',{x:s.x+12,y:s.y+5,width:s.w-24,height:16,rx:6,fill:'#C84B11'}));
+      g.appendChild(mk('text',{x:s.cx,y:s.y+16.5,'text-anchor':'middle',fill:'#FFF','font-family':'monospace','font-size':11,'font-weight':900},s.id));
+      g.appendChild(mk('rect',{x:s.x+4,y:s.y+24,width:s.w-8,height:32,rx:5,fill:'#FFF8EB'}));
+      mtxt(g,s.cx,s.y+42,s.sh,10,'#1A2647',11.5);
+      g.appendChild(mk('text',{x:s.cx,y:s.y+s.h-8,'text-anchor':'middle','font-size':20},s.ic||'🤖'));
+    }
+    if(!s.lm){
+      const b=mk('g',{class:'stamp-star'});
+      b.appendChild(mk('circle',{cx:s.x+s.w-4,cy:s.y+4,r:10,fill:'#FFC93C',stroke:'#1A2647','stroke-width':2}));
+      b.appendChild(mk('text',{x:s.x+s.w-4,y:s.y+8,'text-anchor':'middle',fill:'#1A2647','font-size':12,'font-weight':900},'★'));
+      g.appendChild(b);
+    }
+    g.addEventListener('click',e=>{e.stopPropagation();if(state.wasDragged)return;focusSpot(s.id,true);openCard(s.id);});
+    camG.appendChild(g);
+  });
+  syncStamped(); applyCam(false);
+}
+
+/* ===== 5. Camera Pan / Pinch-Zoom / Double-Tap ===== */
+function applyCam(smooth=false){
+  if(!camG) return;
+  if(state.scale<=1.01){state.scale=1;state.tx=0;state.ty=0;}
+  else{
+    const mx=400*(state.scale-1)+60, my=520*(state.scale-1)+60;
+    state.tx=Math.max(-mx,Math.min(mx,state.tx));
+    state.ty=Math.max(-my,Math.min(my,state.ty));
+  }
+  camG.style.transition=smooth?'transform .28s cubic-bezier(.22,.85,.32,1)':'none';
+  const x=400+state.tx-400*state.scale, y=520+state.ty-520*state.scale;
+  camG.setAttribute('transform',`translate(${x},${y}) scale(${state.scale})`);
+  el.zoomPill.classList.toggle('show',state.scale>1.06);
+  el.zoomPill.textContent=`${state.scale.toFixed(1)}x · 复原全景`;
+}
+const panTo=(sx,sy,sc=state.scale)=>{state.scale=Math.max(1,Math.min(3.2,sc));state.tx=(400-sx)*state.scale;state.ty=(520-sy)*state.scale;applyCam(true);};
+const resetCam=()=>{state.scale=1;state.tx=0;state.ty=0;applyCam(true);};
+
+const ptrs=new Map(); let pan0=null,pinch0=null,lastTap=0;
+const svgRatio=()=>{const r=el.svg.getBoundingClientRect();return Math.max(800/Math.max(r.width,1),1040/Math.max(r.height,1));};
+el.vp.addEventListener('pointerdown',e=>{
+  if(e.target.closest('.zoom-pill,.screen-banner')) return;
+  el.vp.setPointerCapture(e.pointerId); ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY}); state.wasDragged=false;
+  if(ptrs.size===1){pan0={x:e.clientX,y:e.clientY,tx:state.tx,ty:state.ty};pinch0=null;}
+  else if(ptrs.size===2){
+    const[a,b]=[...ptrs.values()];
+    pinch0={d:Math.hypot(b.x-a.x,b.y-a.y),s:state.scale,tx:state.tx,ty:state.ty,mx:(a.x+b.x)/2,my:(a.y+b.y)/2};
+    pan0=null; state.wasDragged=true;
+  }
+});
+el.vp.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId)) return;
+  ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY}); const r=svgRatio();
+  if(ptrs.size===1&&pan0){
+    const dx=e.clientX-pan0.x, dy=e.clientY-pan0.y;
+    if(Math.hypot(dx,dy)>7) state.wasDragged=true;
+    if(!state.wasDragged||state.scale<=1.01) return;
+    state.tx=pan0.tx+dx*r; state.ty=pan0.ty+dy*r; applyCam(false);
+  }else if(ptrs.size===2&&pinch0){
+    const[a,b]=[...ptrs.values()], d=Math.hypot(b.x-a.x,b.y-a.y);
+    const ns=Math.max(1,Math.min(3.2,pinch0.s*(d/Math.max(pinch0.d,10)))), sd=ns/pinch0.s;
+    state.scale=ns; state.tx=pinch0.tx*sd+((a.x+b.x)/2-pinch0.mx)*r; state.ty=pinch0.ty*sd+((a.y+b.y)/2-pinch0.my)*r;
+    applyCam(false);
+  }
+});
+const upPtr=e=>{
+  const single=ptrs.size===1&&!state.wasDragged; ptrs.delete(e.pointerId);
+  if(single&&!e.target.closest('.spot-node')){
+    const now=Date.now();
+    if(now-lastTap<280){
+      if(state.scale>1.15){SFX.zoomOut();resetCam();}
+      else{SFX.zoomIn();const r=el.svg.getBoundingClientRect();panTo(((e.clientX-r.left)/r.width)*800,((e.clientY-r.top)/r.height)*1040,2.05);}
+      lastTap=0;
+    }else lastTap=now;
+  }
+  if(ptrs.size<2) pinch0=null;
+  if(ptrs.size===1){const[p]=[...ptrs.values()];pan0={x:p.x,y:p.y,tx:state.tx,ty:state.ty};}
+  else if(ptrs.size===0){pan0=null;setTimeout(()=>state.wasDragged=false,40);}
+};
+el.vp.addEventListener('pointerup',upPtr); el.vp.addEventListener('pointercancel',upPtr);
+
+/* ===== 6. Focus, D-Pad, Directory, Card & Stamp ===== */
+function focusSpot(id,snd=true){
+  const s=SPOTS.find(i=>i.id===id); if(!s) return;
+  state.focusedId=id; if(snd) SFX.select(ZONES[s.z].idx);
+  el.svg.querySelectorAll('.spot-node').forEach(n=>n.classList.toggle('focused',n.getAttribute('data-id')===id));
+  el.bCode.textContent=s.lm?'地标':s.id; el.bName.textContent=s.name; el.banner.classList.add('show');
+}
+function syncStamped(){
+  el.svg.querySelectorAll('.spot-node').forEach(n=>n.classList.toggle('stamped',state.stamped.has(n.getAttribute('data-id'))));
+  const c=BOOTHS.filter(b=>state.stamped.has(b.id)).length;
+  el.countTxt.textContent=`已打卡 ${c}/45`;
+}
+function moveDpad(dir){
+  const cur=SPOTS.find(s=>s.id===state.focusedId)||SPOTS.find(s=>s.id==='M5');
+  if(!state.focusedId){focusSpot(cur.id,true);panTo(cur.cx,cur.cy,Math.max(state.scale,1.8));return;}
+  let best=null, score=Infinity;
+  BOOTHS.forEach(c=>{
+    if(c.id===cur.id) return;
+    const dx=c.cx-cur.cx, dy=c.cy-cur.cy; let ok=0,p=0,s=0;
+    if(dir==='right'&&dx>16){ok=1;p=dx;s=Math.abs(dy);}
+    if(dir==='left'&&dx<-16){ok=1;p=-dx;s=Math.abs(dy);}
+    if(dir==='down'&&dy>16){ok=1;p=dy;s=Math.abs(dx);}
+    if(dir==='up'&&dy<-16){ok=1;p=-dy;s=Math.abs(dx);}
+    if(ok&&p+s*2.2<score){score=p+s*2.2;best=c;}
+  });
+  if(best){focusSpot(best.id,true);panTo(best.cx,best.cy,Math.max(state.scale,1.85));}else SFX.click();
+}
+function openCard(id){
+  const s=SPOTS.find(i=>i.id===id); if(!s) return;
+  state.cardOpen=true; const z=ZONES[s.z];
+  el.card.style.setProperty('--zc',z.color);
+  el.cCode.textContent=s.lm?'地标':s.id; el.cZone.textContent=z.name;
+  el.cTitle.textContent=s.name; el.cTeam.textContent=s.team; el.cDesc.textContent=s.desc;
+  el.cTags.innerHTML=(s.tags||[]).map(t=>`<span class="tag-chip"># ${t}</span>`).join('');
+  el.sCode.textContent=s.lm?'GO!':s.id;
+  const done=state.stamped.has(s.id);
+  el.cScan.classList.toggle('done',done);
+  el.cScan.textContent=s.lm?'📷 打开扫码器去打卡':(done?'✓ 本展位已扫码打卡':'📷 扫此展位码打卡');
+  el.sFx.classList.remove('show');
+  el.sFx.style.opacity=done?'1':'0'; el.sFx.style.transform='rotate(-16deg) scale(1)';
+  el.cardBg.classList.add('open'); SFX.openCard();
+}
+function closeCard(){ if(!state.cardOpen) return; state.cardOpen=false; el.cardBg.classList.remove('open'); SFX.closeCard(); }
+function stepCard(d){
+  const i=BOOTHS.findIndex(b=>b.id===state.focusedId), nxt=BOOTHS[(Math.max(i,0)+d+BOOTHS.length)%BOOTHS.length];
+  focusSpot(nxt.id,false); if(state.scale>1.1) panTo(nxt.cx,nxt.cy,state.scale); openCard(nxt.id);
+}
+function performStamp(id){
+  const t=BOOTHS.find(b=>b.id===id); if(!t){toast('未识别到有效展位码');return;}
+  const dup=state.stamped.has(t.id);
+  focusSpot(t.id,false); panTo(t.cx,t.cy,2.1); openCard(t.id);
+  if(dup){SFX.dup();toast(`${t.id} ${t.name} 已打过卡（同一展位计 1 枚）`);return;}
+  state.stamped.add(t.id); try{localStorage.setItem(KEY,JSON.stringify([...state.stamped]));}catch(_){}
+  syncStamped(); el.cScan.classList.add('done'); el.cScan.textContent='✓ 本展位已扫码打卡';
+  setTimeout(()=>{
+    SFX.stamp();
+    el.sFx.classList.remove('show'); void el.sFx.offsetWidth; el.sFx.classList.add('show');
+    el.shell.classList.remove('shake'); void el.shell.offsetWidth; el.shell.classList.add('shake');
+    const n=BOOTHS.filter(b=>state.stamped.has(b.id)).length;
+    toast(n===45?'🏆 太强了！45 个机器人展位全部集满通关！':`🎉 打卡成功！${t.id} ${t.name}（${n}/45）`);
+  },160);
+}
+function renderDir(){
+  const q=el.dirSearch.value.trim().toLowerCase();
+  const ls=BOOTHS.filter(b=>(state.dirZone==='ALL'||b.z===state.dirZone)&&(!q||b.id.toLowerCase().includes(q)||b.name.toLowerCase().includes(q)||b.team.toLowerCase().includes(q)));
+  el.dirList.innerHTML=ls.map(b=>`<button class="dir-item" data-id="${b.id}"><div style="display:flex;justify-content:space-between;align-items:center"><span class="dir-code" style="background:${ZONES[b.z].color}">${b.id}</span><span style="color:#E69B00;font-size:13px">${state.stamped.has(b.id)?'★':''}</span></div><div class="dir-name">${b.name}</div></button>`).join('');
+  el.dirList.querySelectorAll('.dir-item').forEach(btn=>btn.addEventListener('click',()=>{
+    const t=SPOTS.find(s=>s.id===btn.dataset.id); el.dirBg.classList.remove('open');
+    if(t){focusSpot(t.id,true);panTo(t.cx,t.cy,2.15);setTimeout(()=>openCard(t.id),200);}
+  }));
+}
+
+/* ===== 7. Built-in QR Scanner (Live Camera + Photo Fallback + Sim) ===== */
+let stream=null, raf=null, locked=false;
+const sCvs=document.createElement('canvas'), sCtx=sCvs.getContext('2d',{willReadFrequently:true});
+let detector=null; if('BarcodeDetector'in window)try{detector=new BarcodeDetector({formats:['qr_code']})}catch(_){}
+
+function parseCode(raw){
+  if(!raw) return null; const s=String(raw).trim();
+  try{const p=new URL(s).searchParams.get('stamp');if(p&&BOOTHS.some(b=>b.id===p.toUpperCase()))return p.toUpperCase();}catch(_){}
+  const m=s.toUpperCase().match(/\b(Q[1-6]|M(?:1[0-5]|[1-9])|S(?:10|[1-9])|G(?:1[0-2]|[1-9])|W[12])\b/);
+  return m?m[1]:null;
+}
+function onQR(raw){
+  if(locked) return; const id=parseCode(raw);
+  if(!id){toast('扫到的不是本嘉年华展位二维码哦');return;}
+  locked=true; SFX.scanBeep(); closeScan(true); setTimeout(()=>performStamp(id),140);
+}
+async function openScan(){
+  SFX.click(); closeCard(); locked=false;
+  el.sModal.classList.add('open'); el.sBox.classList.add('show');
+  el.sTit.textContent='正在启动后置摄像头…';
+  el.sDesc.textContent='请允许访问相机，对准展位二维码即可自动盖章。';
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
+    el.sTit.textContent='当前环境暂不支持实时取景';
+    el.sDesc.textContent='本地非 HTTPS 测试时浏览器会限制实时相机，请点下方「🖼 拍照/选图识码」或「✨ 模拟扫码体验」直接测试！';
+    return;
+  }
+  try{
+    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});
+    el.sVid.srcObject=stream; await el.sVid.play(); el.sBox.classList.remove('show');
+    let last=0;
+    const loop=async now=>{
+      if(!stream||locked) return; raf=requestAnimationFrame(loop);
+      if(now-last<180) return; last=now;
+      const v=el.sVid; if(v.readyState<2||!v.videoWidth) return;
+      if(detector){try{const cs=await detector.detect(v);if(cs&&cs[0]&&cs[0].rawValue){onQR(cs[0].rawValue);return;}}catch(_){}}
+      if(typeof window.jsQR==='function'){
+        const tw=Math.min(480,v.videoWidth), th=Math.round((v.videoHeight/v.videoWidth)*tw);
+        sCvs.width=tw; sCvs.height=th; sCtx.drawImage(v,0,0,tw,th);
+        const r=window.jsQR(sCtx.getImageData(0,0,tw,th).data,tw,th,{inversionAttempts:'dontInvert'});
+        if(r&&r.data) onQR(r.data);
+      }
+    };
+    raf=requestAnimationFrame(loop);
+  }catch(_){
+    el.sTit.textContent='未能开启实时摄像头';
+    el.sDesc.textContent='可点下方「🖼 拍照/选图识码」识码打卡，或直接用微信扫一扫展位二维码！';
+  }
+}
+function closeScan(silent=false){
+  cancelAnimationFrame(raf);
+  if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}
+  el.sVid.srcObject=null; el.sModal.classList.remove('open');
+  if(!silent) SFX.closeCard();
+}
+el.qrFile.addEventListener('change',e=>{
+  const f=e.target.files&&e.target.files[0]; e.target.value=''; if(!f) return;
+  const img=new Image(), u=URL.createObjectURL(f);
+  img.onload=async()=>{
+    URL.revokeObjectURL(u);
+    const sc=Math.min(1,960/Math.max(img.width,img.height)), w=Math.round(img.width*sc), h=Math.round(img.height*sc);
+    sCvs.width=w; sCvs.height=h; sCtx.drawImage(img,0,0,w,h);
+    if(detector){try{const cs=await detector.detect(sCvs);if(cs&&cs[0]&&cs[0].rawValue){onQR(cs[0].rawValue);return;}}catch(_){}}
+    if(typeof window.jsQR==='function'){const r=window.jsQR(sCtx.getImageData(0,0,w,h).data,w,h);if(r&&r.data){onQR(r.data);return;}}
+    toast('未识别到二维码，请靠近拍清晰一点再试');
+  };
+  img.src=u;
+});
+
+/* ===== 8. Events & Direct ?stamp=M5 Entry ===== */
+el.mute.addEventListener('click',()=>{const m=SFX.toggleMute();el.mute.textContent=m?'🔇':'🔊';el.mute.classList.toggle('muted',m);});
+el.routeBtn.addEventListener('click',()=>{state.showRoute=!state.showRoute;if(routeG)routeG.style.display=state.showRoute?'block':'none';el.routeBtn.classList.toggle('active',state.showRoute);SFX.click();});
+document.querySelectorAll('.dpad-key').forEach(b=>b.addEventListener('click',()=>moveDpad(b.dataset.dir)));
+$('dpadMid').addEventListener('click',()=>{if(state.focusedId)openCard(state.focusedId);else{focusSpot('M5',true);panTo(348,624,1.9);}});
+const ZS=[1,1.6,2.2,2.9];
+$('btnZoomIn').addEventListener('click',()=>{const n=ZS.find(s=>s>state.scale+.08)||3.1;SFX.zoomIn();const f=SPOTS.find(s=>s.id===state.focusedId);if(f)panTo(f.cx,f.cy,n);else{state.scale=n;applyCam(true);}});
+$('btnZoomOut').addEventListener('click',()=>{const p=[...ZS].reverse().find(s=>s<state.scale-.08)||1;SFX.zoomOut();if(p<=1.02)resetCam();else{state.scale=p;applyCam(true);}});
+el.zoomPill.addEventListener('click',()=>{SFX.zoomOut();resetCam();});
+el.banner.addEventListener('click',()=>{if(state.focusedId)openCard(state.focusedId);});
+$('openScanBtn').addEventListener('click',openScan);
+$('closeScanBtn').addEventListener('click',()=>closeScan(false));
+$('simScanBtn').addEventListener('click',()=>{
+  const pref=BOOTHS.find(b=>b.id===state.focusedId&&!state.stamped.has(b.id));
+  const nxt=pref||BOOTHS.find(b=>!state.stamped.has(b.id))||BOOTHS[0];
+  onQR(nxt.id);
+});
+el.dirBtn.addEventListener('click',()=>{SFX.openCard();renderDir();el.dirBg.classList.add('open');});
+$('dirClose').addEventListener('click',()=>{el.dirBg.classList.remove('open');SFX.click();});
+el.dirBg.addEventListener('click',e=>{if(e.target===el.dirBg){el.dirBg.classList.remove('open');SFX.click();}});
+el.dirSearch.addEventListener('input',renderDir);
+document.querySelectorAll('.dz-btn').forEach(b=>b.addEventListener('click',()=>{
+  SFX.click();state.dirZone=b.dataset.z;document.querySelectorAll('.dz-btn').forEach(x=>x.classList.toggle('active',x===b));renderDir();
+}));
+$('cardClose').addEventListener('click',closeCard);
+el.cardBg.addEventListener('click',e=>{if(e.target===el.cardBg)closeCard();});
+$('prevBtn').addEventListener('click',()=>stepCard(-1));
+$('nextBtn').addEventListener('click',()=>stepCard(1));
+el.cScan.addEventListener('click',openScan);
+
+buildMap();
+const urlStamp=(new URLSearchParams(location.search).get('stamp')||'').toUpperCase();
+if(urlStamp) setTimeout(()=>performStamp(urlStamp),260);
+</script>
+</body>
+</html>

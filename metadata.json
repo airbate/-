@@ -1,0 +1,6 @@
+{
+  "name": "2026 亦庄具身智能嘉年华 · 掌上导览机",
+  "description": "2026 亦庄具身智能嘉年华复古掌机风互动现场导览与扫码集章应用",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
